@@ -14,6 +14,7 @@ num_2_string:  	.string "Place holder string for your second number", 0
 
 	.global lab3
 U0FR: 	.equ 0x18	; UART0 Flag Register
+					; UART0 Data 0x4000C000
 
 ptr_to_prompt:		.word prompt
 ptr_to_result:		.word result
