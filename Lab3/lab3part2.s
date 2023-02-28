@@ -98,11 +98,11 @@ string2int:
 	PUSH {lr}   ; Store register lr on stack
 	
 loopstring2int:
-	LDRB r0,[r1, #1]	;get the string
-	CMP r0, #0		;check if it null
+	LDRB r1,[r0, #1]	;get the string
+	CMP r1, #0		;check if it null
 	BEQ exit		;exit if it null
-	SUB r0, r0, $48		;convert string to int
-	STRB r0, [r1]		;store the int into the memory address
+	SUB r1, r1, $48		;convert string to int
+	STRB r1, [r0]		;store the int into the memory address
 	B loopstring2int	;go back to loop
 exit:
 
