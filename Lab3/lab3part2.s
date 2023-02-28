@@ -82,29 +82,32 @@ int2string:
 	PUSH {lr}   ; Store register lr on stack
 	
 loopint2string:	
-	LDRB r6, [ptr_to_num_1_string, #1]
-	CMP r6, #0
-	BEQ exit
-	ADD r6, r6, #48
-	STRB r6, [ptr_to_num_1_string]
-	B loopint2string
+	LDRB r0, [r1, #1] 	;get the int 
+	CMP r0, #0 		  	;check if it null 
+	BEQ exit 		  	;exit if it null
+	ADD r0, r0, #48   	;convert int into string
+	STRB r0, [r1] 		;store the string into the memory address
+	B loopint2string    ;go back to loop
 exit:
+		; Your code for your int2string routine is placed here
+		
 	POP {lr}
 	mov pc, lr
 
-
 string2int:
 	PUSH {lr}   ; Store register lr on stack
-	MOV r8, #0
-	MOV r9, #10
+	
 loopstring2int:
-	LDRB r6, [ptr_to_num_1_string, #1]
-	SUB r6, #48
-	ADD r8, r8, r6
-	MUL r8, r8, r9
-	
+	LDRB r0,[r1, #1]	;get the string
+	CMP r0, #0			;check if it null
+	BEQ exit			;exit if it null
+	SUB r0, r0, $48		;convert string to int
+	STRB r0, [r1]		;store the int into the memory address
+	B loopstring2int	;go back to loop
+exit:
+
 		; Your code for your string2int routine is placed here
-	
+
 
 	POP {lr}
 	mov pc, lr
