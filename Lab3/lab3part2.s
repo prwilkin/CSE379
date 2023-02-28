@@ -83,11 +83,11 @@ int2string:
 	
 loopint2string:	
 	LDRB r0, [r1, #1] 	;get the int 
-	CMP r0, #0 		  	;check if it null 
-	BEQ exit 		  	;exit if it null
+	CMP r0, #0 		;check if it null 
+	BEQ exit 		;exit if it null
 	ADD r0, r0, #48   	;convert int into string
 	STRB r0, [r1] 		;store the string into the memory address
-	B loopint2string    ;go back to loop
+	B loopint2string    	;go back to loop
 exit:
 		; Your code for your int2string routine is placed here
 		
@@ -99,8 +99,8 @@ string2int:
 	
 loopstring2int:
 	LDRB r0,[r1, #1]	;get the string
-	CMP r0, #0			;check if it null
-	BEQ exit			;exit if it null
+	CMP r0, #0		;check if it null
+	BEQ exit		;exit if it null
 	SUB r0, r0, $48		;convert string to int
 	STRB r0, [r1]		;store the int into the memory address
 	B loopstring2int	;go back to loop
