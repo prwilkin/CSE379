@@ -1,4 +1,4 @@
-	.data
+.data
 
 	.global prompt
 	.global results
@@ -80,17 +80,31 @@ uart_init:
 
 int2string:
 	PUSH {lr}   ; Store register lr on stack
-
-		; Your code for your int2string routine is placed here
-
+	
+loopint2string:	
+	LDRB r6, [ptr_to_num_1_string, #1]
+	CMP r6, #0
+	BEQ exit
+	ADD r6, r6, #48
+	STRB r6, [ptr_to_num_1_string]
+	B loopint2string
+exit:
 	POP {lr}
 	mov pc, lr
 
 
 string2int:
 	PUSH {lr}   ; Store register lr on stack
-
+	MOV r8, #0
+	MOV r9, #10
+loopstring2int:
+	LDRB r6, [ptr_to_num_1_string, #1]
+	SUB r6, #48
+	ADD r8, r8, r6
+	MUL r8, r8, r9
+	
 		; Your code for your string2int routine is placed here
+	
 
 	POP {lr}
 	mov pc, lr
