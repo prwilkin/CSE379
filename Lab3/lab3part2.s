@@ -27,11 +27,14 @@ lab3:
 	ldr r5, ptr_to_result
 	ldr r6, ptr_to_num_1_string
 	ldr r7, ptr_to_num_2_string
+	MOV r1, #1	;currently storing to num_1_string
 
 		; Your code is placed here.  This is your main routine for
 		; Lab #3.  This should call your other routines such as
 		; uart_init, read_string, output_string, int2string, &
 		; string2int
+
+		;lab3 doc code Pat
 
 	POP {lr}	  ; Restore lr from stack
 	mov pc, lr
@@ -40,8 +43,22 @@ lab3:
 read_string:
 	PUSH {lr}   ; Store register lr on stack
 
-		; Your code for your read_string routine is placed here
+	;Pat
+	PUSH {r0}	;push addy
+	BL read_character
+num_string:
+	CMP r0, #0x0D	;check for cr char
+	BNE STORE_num_string
+	MOV r0, #0x00	;if CR convert to NULL
+STORE_num_string:
+	MOV r1, r0		;store char from read_character in r1
+	POP {r0}		;
+	STRB r1, [r0]	;store
+	ADD r1, r1, #1	;increment addy
+	BL output_character
 
+		; Your code for your read_string routine is placed here
+end_read_string
 	POP {lr}
 	mov pc, lr
 
@@ -49,6 +66,7 @@ read_string:
 output_string:
 	PUSH {lr}   ; Store register lr on stack
 
+	;Pat
 		; Your code for your output_string routine is placed here
 
 	POP {lr}
