@@ -1,6 +1,6 @@
 	.data
 
-	.global lab3
+	.global lab3part1
 
 U0FR: 	.equ 0x18	; UART0 Flag Register
 					; 0x4000 C000

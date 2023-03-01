@@ -27,7 +27,7 @@ lab3:
 	ldr r5, ptr_to_result
 	ldr r6, ptr_to_num_1_string
 	ldr r7, ptr_to_num_2_string
-	MOV r1, #1	;currently storing to num_1_string
+
 
 		; Your code is placed here.  This is your main routine for
 		; Lab #3.  This should call your other routines such as
@@ -38,15 +38,17 @@ lab3:
 
 	POP {lr}	  ; Restore lr from stack
 	mov pc, lr
+	;############ Lab3
 
 
 read_string:
 	PUSH {lr}   ; Store register lr on stack
 
 	;Pat
+read_string_loop:
 	PUSH {r0}	;push addy
 	BL read_character
-num_string:
+NULL_set_num_string:
 	CMP r0, #0x0D	;check for cr char
 	BNE STORE_num_string
 	MOV r0, #0x00	;if CR convert to NULL
@@ -54,39 +56,76 @@ STORE_num_string:
 	MOV r1, r0		;store char from read_character in r1
 	POP {r0}		;
 	STRB r1, [r0]	;store
-	ADD r1, r1, #1	;increment addy
+	ADD r0, r0, #1	;increment addy
+	PUSH {r0}		;push addy to stack
+	MOV r0, r1		;store char for output_character
 	BL output_character
-
+	POP {r0}		;pop addy from stack
+	BL read_string_loop
 		; Your code for your read_string routine is placed here
 end_read_string
 	POP {lr}
 	mov pc, lr
+	;############ read_string
 
 
 output_string:
 	PUSH {lr}   ; Store register lr on stack
 
 	;Pat
-		; Your code for your output_string routine is placed here
+output_string_loop:
+	MOV r1, r0		;store addy in r1
+	PUSH {r0}		;push addy to stack
+LOAD_num_string:
+	LDRB r0, [r1]	;load char
+	CMP r0, #0x00	;check for NULL char
+	BEQ end_output_string
+	BL output_character
+	POP {r0}		;pop addy from stack
+	ADD r0, r0, #1	;increment addy
+	BL output_string_loop
 
+		; Your code for your output_string routine is placed here
+end_output_string:
 	POP {lr}
 	mov pc, lr
+	;############ output_string
+
+
 read_character:
 	PUSH {lr}   ; Store register lr on stack
 
+read_character_loop:
+	MOV r2, #0xC000
+ 	MOVT r2, #0x4000
+	LDRB r1, [r2, #U0FR]	;get 0xFE bit
+	AND r1, #0x10			;isolate OxFE bit
+	CMP r1, #0x10			;if bit 1 branch
+	BEQ read_character_loop
+	LDRB r0, [r2]			;if 0 store in data
 		; Your code for your read_character routine is placed here
 
 	POP {lr}
 	mov pc, lr
+	;############ read_character
 
 
 output_character:
 	PUSH {lr}   ; Store register lr on stack
 
+output_character_loop:
+	MOV r2, #0xC000
+ 	MOVT r2, #0x4000
+	LDRB r1, [r2, #U0FR]	;get 0xFF bit
+	AND r1, #0x20			;isolate 0xFF bit
+	CMP r1, #0				;if bit 1 branch
+	BNE output_character_loop
+	STRB r0, [r2]			;if 0 store in data
 		; Your code for your output_character routine is placed here
 
 	POP {lr}
 	mov pc, lr
+	;############ output_character
 
 
 uart_init:
@@ -129,12 +168,12 @@ uart_init:
 	;Make PA0 and PA1 as Digital Ports
 	MOV r0, #0x451C		;set address to 0x4000451C
 	LDR r1, [r0]
-	ORR r1, r1, 0x03
+	ORR r1, r1, #0x03
 	STR r1, [r0]
 	;Change PA0,PA1 to Use an Alternate Function
 	MOV r0, #0x4420		;set address to 0x40004420
 	LDR r1, [r0]
-	ORR r1, r1, 0x03
+	ORR r1, r1, #0x03
 	STR r1, [r0]
 	;Configure PA0 and PA1 for UART
 	MOV r0, #0x452C		;set address to 0x4000452C
@@ -146,6 +185,8 @@ uart_init:
 
 	POP {lr}
 	mov pc, lr
+	;############ uart_init
+
 
 int2string:
 	PUSH {lr}   ; Store register lr on stack
@@ -154,6 +195,7 @@ int2string:
 
 	POP {lr}
 	mov pc, lr
+	;############ int2string
 
 
 string2int:
@@ -163,5 +205,6 @@ string2int:
 
 	POP {lr}
 	mov pc, lr
+	;############ string2int
 
 	.end
