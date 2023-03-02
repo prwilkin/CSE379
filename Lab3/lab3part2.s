@@ -80,9 +80,9 @@ uart_init:
 
 int2string:
 	PUSH {lr}   ; Store register lr on stack
-	
 loopint2string:	
-	LDRB r0, [r1, #1] 	;get the int 
+	LDRB r0, [r1] 		;get the int
+	ADD r1, r1, #1		;add 1 to r1 to move to the next address
 	CMP r0, #0 		;check if it null 
 	BEQ exit 		;exit if it null
 	ADD r0, r0, #48   	;convert int into string
@@ -98,7 +98,8 @@ string2int:
 	PUSH {lr}   ; Store register lr on stack
 	
 loopstring2int:
-	LDRB r1,[r0, #1]	;get the string
+	LDRB r1,[r0]		;get the string
+	ADD r0, r0, #1		;add 1 to r0 to move to the next address
 	CMP r1, #0		;check if it null
 	BEQ exit		;exit if it null
 	SUB r1, r1, $48		;convert string to int
