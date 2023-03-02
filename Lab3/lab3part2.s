@@ -5,7 +5,8 @@
 	.global num_1_string
 	.global num_2_string
 
-prompt:	.string "Your prompts are placed here", 0
+prompt:	.string "Enter Numbers\|Average is |\Press Enter to run again|", 0
+	;			"Your prompts are placed here", 0
 result:	.string "Your results are reported here", 0
 num_1_string: 	.string "Place holder string for your first number", 0
 num_2_string:  	.string "Place holder string for your second number", 0
@@ -27,8 +28,44 @@ lab3:
 	ldr r5, ptr_to_result
 	ldr r6, ptr_to_num_1_string
 	ldr r7, ptr_to_num_2_string
-
-
+	BL uart_init
+	MOV r0, #0x12
+	STRB r0, [r4, #0xD]	;new line after 'Enter Numbers' prompt
+	STRB r0, [r4, #0xE]	;new line before 'Press Enter to run again' prompt
+	MOV r0, #0x00
+	STRB r0, [r4, #0xE]		;null after 'Enter Numbers\n'
+	STRB r0, [r4, #0x1A]	;null after 'Average is '
+	STRB r0, [r4, #0x34]	;null after '\nPress Enter to run again'
+	MOV r0, r4			;set r0 to base addy for prompt
+	BL output_string	;call <-- to print prompt
+	MOV r0, r6			;set r0 to base addy for 1st number
+	BL read_string		;call <-- to get number
+	MOV r0, r7			;set r0 to base addy for 2nd number
+	BL read_string		;call <-- to get number
+	MOV r0, r6			;set r0 to base addy for 1st number
+	BL string2int		;call <-- to convert to number
+	PUSH {r0}			;push 1st number to stack
+	MOV r0, r7			;set r0 to base addy for 2nd number
+	BL string2int		;call <-- to convert to number
+	MOV r1, r0			;stores 2nd number in r1
+	POP {r0}			;pop 1st number from stack
+	ADD r0, r0, r1		;begin to calculate avg
+	SDIV r0, r0, #2		;divide tot by 2 for avg
+	MOV r1, r5			;pass addy of prompt
+	BL int2string		;call <-- to convert average to string
+	MOV r0, r4			;set r0 to base addy for prompt
+	ADD r0,	r0, #0xF	;offset base addy
+	BL output_string	;call <-- to print prompt
+	MOV r0, r5			;set r0 base addy result
+	BL output_string	;call <-- to print result
+	MOV r0, r4			;set r0 to base addy for prompt
+	ADD r0,	r0, #0x		;offset base addy
+	BL output_string	;call <-- to print prompt
+reset_lab3:
+	BL read_character	;get char
+	CMP r0, #0x13		;cmp for CR
+	BNE reset_lab3		;not CR then loop
+	BEQ	lab3			;if CR then reset program
 		; Your code is placed here.  This is your main routine for
 		; Lab #3.  This should call your other routines such as
 		; uart_init, read_string, output_string, int2string, &
