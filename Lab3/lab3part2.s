@@ -1,4 +1,4 @@
-	.data
+		.data
 
 	.global prompt
 	.global results
@@ -6,7 +6,7 @@
 	.global num_2_string
 
 prompt:	.string "Enter Numbers\|Average is |\Press Enter to run again|", 0
-	;			"Your prompts are placed here", 0
+				;"Your prompts are placed here", 0
 result:	.string "Your results are reported here", 0
 num_1_string: 	.string "Place holder string for your first number", 0
 num_2_string:  	.string "Place holder string for your second number", 0
@@ -15,7 +15,6 @@ num_2_string:  	.string "Place holder string for your second number", 0
 
 	.global lab3
 U0FR: 	.equ 0x18	; UART0 Flag Register
-					; UART0 Data 0x4000C000
 
 ptr_to_prompt:		.word prompt
 ptr_to_result:		.word result
@@ -98,7 +97,7 @@ STORE_num_string:
 	MOV r0, r1		;store char for output_character
 	BL output_character
 	POP {r0}		;pop addy from stack
-	BL read_string_loop
+	B read_string_loop
 		; Your code for your read_string routine is placed here
 end_read_string
 	POP {lr}
@@ -120,10 +119,11 @@ LOAD_num_string:
 	BL output_character
 	POP {r0}		;pop addy from stack
 	ADD r0, r0, #1	;increment addy
-	BL output_string_loop
+	B output_string_loop
 
 		; Your code for your output_string routine is placed here
 end_output_string:
+	POP {r0}
 	POP {lr}
 	mov pc, lr
 	;############ output_string
@@ -135,7 +135,7 @@ read_character:
 read_character_loop:
 	MOV r2, #0xC000
  	MOVT r2, #0x4000
-	LDRB r1, [r2, #U0FR]	;get 0xFE bit
+	LDRB r1, [r2, #U0FR]	;get RxFE bit
 	AND r1, #0x10			;isolate OxFE bit
 	CMP r1, #0x10			;if bit 1 branch
 	BEQ read_character_loop
@@ -153,7 +153,7 @@ output_character:
 output_character_loop:
 	MOV r2, #0xC000
  	MOVT r2, #0x4000
-	LDRB r1, [r2, #U0FR]	;get 0xFF bit
+	LDRB r1, [r2, #U0FR]	;get TxFF bit
 	AND r1, #0x20			;isolate 0xFF bit
 	CMP r1, #0				;if bit 1 branch
 	BNE output_character_loop
@@ -174,7 +174,8 @@ uart_init:
 	MOV r1, #0x1		;mark bit #0 as 1
 	STR r1,	[r0]		;store @ address
 	;Enable clock to PortA
-	MOV r0, #0xE608		;set address to 0x400FE618
+	MOV r0, #0xE608		;set address to 0x400FE608
+	MOVT r0, #0x400F
 	MOV r1, #0x1		;mark bit #0 as 1
 	STR r1, [r0]		;store @ address
 	;Disable UART0 Control
@@ -184,36 +185,44 @@ uart_init:
 	STR r1, [r0]		;store @ address
 	;Set UART0_IBRD_R for 115,200 baud
 	MOV r0, #0xC024		;set address to 0x4000C024
+	MOVT r0, #0x4000
 	MOV r1, #0x8
 	STR r1, [r0]		;store @ address
 	;Set UART0_FBRD_R for 115,200 baud
 	MOV r0, #0xC028		;set address to 0x4000C028
+	MOVT r0, #0x4000
 	MOV r1, #0x2C
 	STR r1, [r0]
 	;Use System Clock
 	MOV r0, #0xCFC8		;set address to 0x4000CFC8
+	MOVT r0, #0x4000
 	MOV r1, #0x0
 	STR r1, [r0]
 	;Use 8-bit word length, 1 stop bit, no parity
 	MOV r0, #0xC02C		;set address to 0x4000C02C
+	MOVT r0, #0x4000
 	MOV r1, #0x3C
 	STR r1, [r0]
 	;Enable UART0 Control
 	MOV r0, #0xC030		;set address to 0x4000C030
+	MOVT r0, #0x4000
 	MOV r1, #12D
 	STR r1, [r0]
 	;Make PA0 and PA1 as Digital Ports
 	MOV r0, #0x451C		;set address to 0x4000451C
+	MOVT r0, #0x4000
 	LDR r1, [r0]
 	ORR r1, r1, #0x03
 	STR r1, [r0]
 	;Change PA0,PA1 to Use an Alternate Function
 	MOV r0, #0x4420		;set address to 0x40004420
+	MOVT r0, #0x4000
 	LDR r1, [r0]
 	ORR r1, r1, #0x03
 	STR r1, [r0]
 	;Configure PA0 and PA1 for UART
 	MOV r0, #0x452C		;set address to 0x4000452C
+	MOVT r0, #0x4000
 	LDR r1, [r0]
 	ORR r1, r1, #0x11
 	STR r1, [r0]
@@ -228,20 +237,35 @@ uart_init:
 int2string:
 	PUSH {lr}   ; Store register lr on stack
 
+loopint2string:
+	LDRB r0, [r1]	 	;get the int
+	ADD r1, r1, #1		;add 1 to r1 to move to the next address
+	CMP r0, #0 		  	;check if it null
+	BEQ exit 		  	;exit if it null
+	ADD r0, r0, #48   	;convert int into string
+	STRB r0, [r1] 		;store the string into the memory address
+	B loopint2string    ;go back to loop
+exit:
 		; Your code for your int2string routine is placed here
 
 	POP {lr}
 	mov pc, lr
-	;############ int2string
-
 
 string2int:
 	PUSH {lr}   ; Store register lr on stack
+loopstring2int:
+	LDRB r1, [r0]		;get the string
+	ADD r0, r0, #1		;add 1 to r0 to move to the next address
+	CMP r1, #0			;check if it null
+	BEQ leave			;exit if it null
+	SUB r1, r1, #48		;convert string to int
+	STRB r1, [r0]		;store the int into the memory address
+	B loopstring2int	;go back to loop
+leave:
 
 		; Your code for your string2int routine is placed here
 
 	POP {lr}
 	mov pc, lr
-	;############ string2int
 
 	.end
