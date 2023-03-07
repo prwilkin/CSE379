@@ -1,0 +1,5 @@
+"./Lab4Wrapper.obj"
+"./lab4part1.obj"
+"./tm4c123gh6pm_startup_ccs.obj"
+"../tm4c123gh6pm.cmd"
+-llibc.a
