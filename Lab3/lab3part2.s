@@ -1,11 +1,11 @@
-		.data
+				.data
 
 	.global prompt
 	.global results
 	.global num_1_string
 	.global num_2_string
 
-prompt:	.string "Enter Numbers\|Average is |\Press Enter to run again|", 0
+prompt:	.string "Enter Numbers",0xA,0xD,0x00,0xA,0xD,"Average is ",0x00,0xA,0xD,"Press Enter to run again or q to quit",0xA,0xD,0x00
 				;"Your prompts are placed here", 0
 result:	.string "Your results are reported here", 0
 num_1_string: 	.string "Place holder string for your first number", 0
@@ -28,17 +28,14 @@ lab3:
 	ldr r6, ptr_to_num_1_string
 	ldr r7, ptr_to_num_2_string
 	BL uart_init
-	MOV r0, #0x12
-	STRB r0, [r4, #0xD]	;new line after 'Enter Numbers' prompt
-	STRB r0, [r4, #0x1B]	;new line before 'Press Enter to run again' prompt
-	MOV r0, #0x00
-	STRB r0, [r4, #0xE]		;null after 'Enter Numbers\n'
-	STRB r0, [r4, #0x1A]	;null after 'Average is '
-	STRB r0, [r4, #0x34]	;null after '\nPress Enter to run again'
 	MOV r0, r4			;set r0 to base addy for prompt
 	BL output_string	;call <-- to print prompt
 	MOV r0, r6			;set r0 to base addy for 1st number
 	BL read_string		;call <-- to get number
+	MOV r0, #0xA
+	BL output_character
+	MOV r0, #0xD
+	BL output_character
 	MOV r0, r7			;set r0 to base addy for 2nd number
 	BL read_string		;call <-- to get number
 	MOV r0, r6			;set r0 to base addy for 1st number
@@ -54,16 +51,18 @@ lab3:
 	MOV r1, r5			;pass addy of prompt
 	BL int2string		;call <-- to convert average to string
 	MOV r0, r4			;set r0 to base addy for prompt
-	ADD r0,	r0, #0xF	;offset base addy
+	ADD r0,	r0, #0x10	;offset base addy
 	BL output_string	;call <-- to print prompt
 	MOV r0, r5			;set r0 base addy result
 	BL output_string	;call <-- to print result
 	MOV r0, r4			;set r0 to base addy for prompt
-	ADD r0, r0, #0x1B	;offset base addy
+	ADD r0, r0, #0x1E	;offset base addy
 	BL output_string	;call <-- to print prompt
 reset_lab3:
 	BL read_character	;get char
-	CMP r0, #0xD			;cmp for CR
+	CMP r0, #0x71		;check for q
+	BEQ QUIT
+	CMP r0, #0xD		;cmp for CR
 	BNE reset_lab3		;not CR then loop
 	POP {lr}
 	BEQ	lab3			;if CR then reset program
@@ -299,7 +298,6 @@ STORE_int2string:
 	BEQ end_int2string 	;exit if it null
 	ADD r1, r1, #1		;add 1 to r1 to move to the next address
 	SUB r2, r2, #1		;next didgit
-	UDIV r9, r9, r10
 
 	B loopint2string    ;go back to loop
 end_int2string:
@@ -333,4 +331,5 @@ leave:
 	POP {lr}
 	mov pc, lr
 
+QUIT:
 	.end
