@@ -1,4 +1,4 @@
-	text
+	.text
 	.global uart_init
 	.global gpio_btn_and_LED_init
 	.global keypad_init ; Downloaded from the course website
