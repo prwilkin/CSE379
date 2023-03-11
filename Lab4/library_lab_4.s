@@ -209,16 +209,38 @@ gpio_btn_and_LED_init:
     MOVT r0, #0x4002
     LDR r1, [r0, #0x400]		;load content of r0 with offset of 0x400 to r1
     BIC r1, r1, #0x10			;bitwise manipulation to clear bit 5 for Port F Pin 4
-    STR r1, [r0, #0x400]		;store r1 into GPIO Pin Direction as Input for Port D Pin 0 - 3
-    ;Enable GPIO Pin 4 for Port F
+    STR r1, [r0, #0x400]		;store r1 into GPIO Pin Direction as Input for Port F Pin 4
+
+    ;Enable GPIO Pin 4 for Port F to Digital
     LDR r1, [r0, #0x51C]		;load content of r0 wuth offset of 0x51C to r1
 	ORR r1, #0x10				;bitwise manipluation to set bit 5 as 1 for Port F Pin 4
 	STR r1, [r0, #0x51C]		;store r1 to r0 with offset of 0x51C enabling Port F Pin 4 as Digital Pin
 	;Enable pull-up resistor for Port F
+
     LDR r1, [r0, #0x510]		;load content of r0 wuth offset of 0x510 to r1
 	ORR r1, #0x10				;set bit 5 to enable pull-up resistor for Pin 5 for Port F
 	STR r1, [r0, #0x510]		;store r1 into r0 enabling pull-up resistor for Pin 5 for Port F
-	 ; Your code is placed here
+
+;ENABLING RGB LIGHT ON TIVA C
+	;enabling clock for Port F
+	MOV r0, #0xE000				;move memory address of clock to r0
+	MOVT r0, #0x400F
+	LDR r1, [r0, #0x608]		;load content of r0 with offset of 0x608 to r1
+	ORR r1, #0x20				;set bit 6 to enable clock for Port F
+	STR r1, [r0, #0x608]		;store r1 into r0 with offset of 0x608 enabling clock in Port F
+
+	;set GPIO Pin Direction as Output for Port F Pin 1 - 3
+	MOV r0, #0x5000				;move memory address of Port F base address to r0
+	MOVT r0, #0x4002
+	LDR r1, [r0, #0x400]		;load content of r0 with offset of 0x400 to r1
+	ORR r1, #0xE				;bitwise manipluation to set bit 1 - 3 as 1 for Port F Pin 1 - 3
+	STR r1, [r0, #0x400]		;store r1 into GPIO Pin Direction as Output for Port F Pin 1 - 3
+
+	;Enable GPIO Pin 1 - 3 for Port F to to Digital
+	LDR r1, [r0, #0x51C]		;load content of r0 wuth offset of 0x51C to r1
+	ORR r1, #0xA				;bitwise manipluation to set bit 1 - 3 as 1 for Port F Pin 1 - 3
+	STR r1, [r0, #0x51C]		;store r1 to r0 with offset of 0x51C enabling Port F Pin 1 - 3 as Digital Pin
+
 	POP {lr}
 	MOV pc, lr
 
@@ -347,9 +369,9 @@ loop:
 	BEQ one						;if it 1 branch to one
 	BNE zero					;if it 0 branch to zero
 one:
-	MOV r0, #0					;set r0 as 1 (High)
+	MOV r0, #0					;When not pressed
 zero:
-	MOV r0, #1					;set r0 as 0 (Low)
+	MOV r0, #1					;When pressed
 
 	B loop
 	POP {lr}
