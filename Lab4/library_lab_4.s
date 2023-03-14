@@ -268,7 +268,7 @@ read_character_loop:
 	CMP r1, #0x10			;if bit 1 branch
 	BEQ read_character_loop
 	LDRB r0, [r2]			;load data
-		
+
 end_read_character:
 	POP {lr}
 	mov pc, lr
@@ -296,7 +296,7 @@ STORE_num_string:
 	CMP r0, #0x00
 	POP {r0}		;pop addy from stack
 	BNE read_string_loop
-		
+
 end_read_string:
 	POP {lr}
 	mov pc, lr
@@ -334,8 +334,8 @@ read_from_push_btns:
 	MOV r0, #0x7000				;move memory address of Port D base address to r0
     MOVT r0, #0x4000
 loop:
-	LDR r1, [r0, #GPIODATA]
-	MOV r2, r1
+	LDR r1, [r0, #GPIODATA]		;load r0 with to offset of #GPIODATA to r1
+	MOV r2, r1					;copy r1 to r2
 	MOV r3, #0x0
 	AND r2, #0x1
 	CMP r2, #0x1
@@ -409,16 +409,16 @@ read_tiva_pushbutton:
 	PUSH {lr} ; Store register lr on stack
 
 	;Read Port F Pin 4
-	MOV r0, #0x5000
+	MOV r0, #0x5000				;load base addre
     MOVT r0, #0x4002
 	LDR r1, [r0, #GPIODATA]
 	AND r1, #0x10
 	CMP r1, #0x10
-	BEQ one						;if it 1 branch to one
-	BNE zero					;if it 0 branch to zero
-one:
+	BEQ notpressed				;if it 1 branch to one
+	BNE pressed 				;if it 0 branch to zero
+notpressed:
 	MOV r0, #0					;When not pressed
-zero:
+pressed:
 	MOV r0, #1					;When pressed
 
 	POP {lr}
@@ -427,7 +427,7 @@ zero:
 ;READ_KEYPAD_SUBROUTINE
 read_keypad:
 	PUSH {lr} ; Store register lr on stack
-	loop:
+loopforkeypad:
 	LDR r0, GPIO_PORT_D			; Load base address of GPIO Port D
 	LDRB r1, [r0, #GPIODATA] 	; Load contents of GPIODATA register for Port D
 	BIC r1, r1, #0xE			; clear bit 1 - 3 for Port D Pin 1 - 3 to keep pin 0 power
@@ -475,38 +475,38 @@ read_keypad:
 	LDRB r1, [r0, #GPIODATA]	;Load content of Port A
 	CMP r1, #0x8				;check if Port A Pin 3 is pressed
 	BEQ checkfor0				;branch it it pressed for Pin 3
-	B loop
+	B loopforkeypad
 checkfor1:
-	MOV, r0, #1
-	B end
+	MOV r0, #1					;put 1 to r0
+	B end1						;end program
 checkfor2:
-	MOV, r0, #2
-	B end
-checkfor3:	
-	MOV, r0, #3
-	B end
+	MOV r0, #2					;put 2 to r0
+	B end1						;end program
+checkfor3:
+	MOV r0, #3					;put 3 to r0
+	B end1						;end program
 checkfor4:
-	MOV, r0, #4
-	B end
+	MOV r0, #4					;put 4 to r0
+	B end1						;end program
 checkfor5:
-	MOV, r0, #5
-	B end
+	MOV r0, #5					;put 5 to r0
+	B end1						;end program
 checkfor6:
-	MOV, r0, #6
-	B end
+	MOV r0, #6					;put 6 to r0
+	B end1						;end program
 checkfor7:
-	MOV, r0, #7
-	B end
+	MOV r0, #7					;put 7 to r0
+	B end1						;end program
 checkfor8:
-	MOV, r0, #8
-	B end
+	MOV r0, #8					;put 8 to r0
+	B end1						;end program
 checkfor9:
-	MOV, r0, #9
-	B end
+	MOV r0, #9					;put 9 to r0
+	B end1						;end program
 checkfor0:
-	MOV, r0, #0
-	B end 
-end:
+	MOV r0, #0					;put 0 to r0
+	B end1						;end program
+end1:
 
 	POP {lr}
 	MOV pc, lr
