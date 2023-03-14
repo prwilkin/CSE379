@@ -329,7 +329,7 @@ end_output_string:
 read_from_push_btns:
 	PUSH {lr} ; Store register lr on stack
 
-	;READ PORT D PIN 0
+	;READ PORT D 
 	MOV r0, #0x7000				;move memory address of Port D base address to r0
     MOVT r0, #0x4000
 loop:
