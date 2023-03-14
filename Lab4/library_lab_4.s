@@ -50,7 +50,7 @@ keypad_init:					;
 	ORR r0, r0, #0xF			; Set bits 0-3 to set GPIO direction to Output
 	STRB r0, [r1, #GPIODIR] 	; Store modifed value of GPIODIR register back to memory
 								;
-* Set GPIO Port A, Pints 2-5 direction to Input
+* Set GPIO Port A, Pins 2-5 direction to Input
 	LDR r1, GPIO_PORT_A			; Load base address of GPIO Port A
 	LDRB r0, [r1, #GPIODIR] 	; Load contents of GPIODIR register
 	BIC r0, r0, #0x3C			; Clear bits 2-5 to set GPIO direction to input
@@ -77,6 +77,7 @@ keypad_init:					;
 	POP {pc}					; Return to caller
 * END OF KEYPAD_INIT			;
 *********************************
+
 
 ;UART_INIT_SUBROUTINE
 uart_init:
@@ -169,7 +170,6 @@ gpio_btn_and_LED_init:
 	ORR r1, #0xF				;set bit 0 - 3 to enable GPIO Pin 0 - 3 for Port D
 	STR r1, [r0, #0x51C]		;store r1 to r0 with offset of 0x51C enabling Port D Pin 0 - 3 as Digital Pin
 
-
 ;ENABLING 4 RGB LIGHT ON ALICE EDUBASE BOARD
 	;enabling clock for Port B
 	MOV r0, #0xE000				;move memory address of clock to r0
@@ -178,7 +178,7 @@ gpio_btn_and_LED_init:
 	ORR r1, #0x2				;set bit 1 to enable clock for Port B
 	STR r1, [r0, #0x608]		;store r1 into r0 with offset of 0x608 enabling clock in Port B
 
-	;set GPIO Pin Direction as Input for Port B Pin 0 - 3
+	;set GPIO Pin Direction as Output for Port B Pin 0 - 3
 	MOV r0, #0x5000				;move memory address of Port B base address to r0
 	MOVT r0, #0x4000
 	LDR r1, [r0, #0x400]		;load content of r0 with offset of 0x400 to r1
@@ -237,6 +237,7 @@ gpio_btn_and_LED_init:
 
 	POP {lr}
 	MOV pc, lr
+
 
 ;OUTPUT_CHARACTER_SUBROUTINE
 output_character:
@@ -302,12 +303,10 @@ end_read_string:
 	mov pc, lr
 
 
-
 ;OUTPUT_STRING_SUBROUTINE
 output_string:
 	PUSH {lr}   ; Store register lr on stack
 
-	;Pat
 output_string_loop:
 	MOV r1, r0		;store addy in r1
 	PUSH {r0}		;push addy to stack
@@ -336,59 +335,58 @@ read_from_push_btns:
 loop:
 	LDR r1, [r0, #GPIODATA]		;load r0 with to offset of #GPIODATA to r1
 	MOV r2, r1					;copy r1 to r2
-	MOV r3, #0x0
-	AND r2, #0x1
-	CMP r2, #0x1
-	BEQ equal1
-	BNE notequal1
+	MOV r3, #0x0				;set r3 as 0x0
+	AND r2, #0x1				;bit masking
+	CMP r2, #0x1				;compare r2 with 0x1
+	BEQ equal1					;branch if r2 does equal to 0x1
+	BNE notequal1				;branch if r2 does not equal to 0x1
 check1:
-	MOV r2, r1
-	AND r2, #0x2
-	CMP r1, #0x2
-	BEQ equal2
-	BNE notequal2
+	MOV r2, r1					;copy r1 to r2
+	AND r2, #0x2				;bit masking
+	CMP r2, #0x2				;compare r2 with 0x2
+	BEQ equal2					;branch if r2 does equal to 0x2
+	BNE notequal2				;branch if r2 does not equal to 0x2
 check2:
-	MOV r2, r1
-	AND r2, #0x4
-	CMP r2, #0x4
-	BEQ equal3
-	BNE notequal3
+	MOV r2, r1					;copy r1 to r2
+	AND r2, #0x4				;bit masking
+	CMP r2, #0x4				;compare r2	with 0x4
+	BEQ equal3					;branch if r2 does equal to 0x4
+	BNE notequal3				;branch if r2 does not equal to 0x4
 check3:
-	MOV r2, r1
-	AND r2, #0x8
-	CMP r2, #0x8
-	BEQ equal4
-	BNE equal4
+	MOV r2, r1					;copy r1 to r2
+	AND r2, #0x8				;bit masking
+	CMP r2, #0x8				;compare r2 wih 0x8
+	BEQ equal4					;branch if r2 does equal to 0x8
+	BNE equal4					;branch if r2 does not equal to 0x8
 equal1:
-	ORR r3, #0x1
-	B end
+	ORR r3, #0x1				;set bit 0 in r3
+	B end						;branch to end
 notequal1:
-	ORR r3, #0x0
-	B check1
+	ORR r3, #0x0				;does not do anything to the bit in r3
+	B check1					;branch back to check the second button
 equal2:
-	ORR r3, #0x2
-	B end
+	ORR r3, #0x2				;set bit 1 in r3
+	B end						;branch to end
 notequal2:
-	ORR r3, #0x0
-	B check2
+	ORR r3, #0x0				;does not do anything to the bit in r3
+	B check2					;branch back to check the third button
 equal3:
-	ORR r3, #0x4
-	B end
+	ORR r3, #0x4				;set bit 2 in r3
+	B end						;branch to end
 notequal3:
-	ORR r3, #0x0
-	B check3
+	ORR r3, #0x0				;does not do anything to the bit in r3
+	B check3					;branch back to check the fourth button
 equal4:
-	ORR r3, #0x8
-	B end
+	ORR r3, #0x8				;set bit 3 in r3
+	B end						;branch to end
 notequal4:
-	ORR r3, #0x0
-	B loop
+	ORR r3, #0x0				;does not do anything to the bit in r3
+	B loop						;branch to loop to keep checking the 4 button again
 end:
-	STR r3, [r0, #GPIODATA]
+	STR r3, [r0, #GPIODATA]		;store r3 to r0 with the offset GPIODATA
 
 	POP {lr}
 	MOV pc, lr
-
 
 
 illuminate_LEDs:
@@ -404,41 +402,48 @@ illuminate_RGB_LED:
 	POP {lr}
 	MOV pc, lr
 
+
 ;READ_TIVA_PUSHBUTTON_SUBROUTINE
 read_tiva_pushbutton:
 	PUSH {lr} ; Store register lr on stack
 
 	;Read Port F Pin 4
-	MOV r0, #0x5000				;load base addre
+	MOV r0, #0x5000				;move base address of Port F to r0
     MOVT r0, #0x4002
-	LDR r1, [r0, #GPIODATA]
-	AND r1, #0x10
-	CMP r1, #0x10
+	LDR r1, [r0, #GPIODATA]		;load content from r0 with offset GPIODATA to r1
+	AND r1, #0x10				;bit masking
+	CMP r1, #0x10				;compare r1 to 0x10
 	BEQ notpressed				;if it 1 branch to one
 	BNE pressed 				;if it 0 branch to zero
 notpressed:
-	MOV r0, #0					;When not pressed
+	MOV r0, #0					;When not pressed store 0 to r0
 pressed:
-	MOV r0, #1					;When pressed
+	MOV r0, #1					;When pressed store 1 to r0
 
 	POP {lr}
 	MOV pc, lr
+
 
 ;READ_KEYPAD_SUBROUTINE
 read_keypad:
 	PUSH {lr} ; Store register lr on stack
 loopforkeypad:
-	LDR r0, GPIO_PORT_D			; Load base address of GPIO Port D
 	LDRB r1, [r0, #GPIODATA] 	; Load contents of GPIODATA register for Port D
 	BIC r1, r1, #0xE			; clear bit 1 - 3 for Port D Pin 1 - 3 to keep pin 0 power
 	STRB r1, [r0, #GPIODATA] 	; Store modifed value of GPIODATA register back to memory
 	LDR r0, GPIO_PORT_A			;load base address of Port A to r0
 	LDRB r1, [r0, #GPIODATA]	;load content of Port A
-	CMP r1, #0x4				;check if Port A Pin 2 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x4				;bit masking to check if 0x4 is there
+	CMP r2, #0x4				;check if Port A Pin 2 is pressed
 	BEQ checkfor1				;branch it it pressed for Pin 2
-	CMP r1, #0x8				;check if Port A Pin 3 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x8				;bit masking to check if 0x8 is there
+	CMP r2, #0x8				;check if Port A Pin 3 is pressed
 	BEQ checkfor2				;branch it it pressed for Pin 3
-	CMP r1, #0x10				;check if Port A Pin 4 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x10				;bit masking to check if 0x10 is there
+	CMP r2, #0x10				;check if Port A Pin 4 is pressed
 	BEQ checkfor3				;branch it it pressed for Pin 4
 	LDR r0, GPIO_PORT_D			; Load base address of GPIO Port D
 	LDRB r1, [r0, #GPIODATA] 	;Load contents of GPIODATA register for Port D
@@ -447,11 +452,17 @@ loopforkeypad:
 	STRB r1, [r0, #GPIODATA]	;store content into Port D Pin 1
 	LDR r0, GPIO_PORT_A			;Load base address of Port A to r0
 	LDRB r1, [r0, #GPIODATA]	;Load content of Port A
-	CMP r1, #0x4				;check if Port A Pin 2 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x4				;bit masking to check if 0x4 is there
+	CMP r2, #0x4				;check if Port A Pin 2 is pressed
 	BEQ checkfor4				;branch it it pressed for Pin 2
-	CMP r1, #0x8				;check if Port A Pin 3 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x8				;bit masking to check if 0x8 is there
+	CMP r2, #0x8				;check if Port A Pin 3 is pressed
 	BEQ checkfor5				;branch it it pressed for Pin 3
-	CMP r1, #0x10				;check if Port A Pin 4 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x10				;bit masking to check if 0x10 is there
+	CMP r2, #0x10				;check if Port A Pin 4 is pressed
 	BEQ checkfor6				;branch it it pressed for Pin 4
 	LDR r0, GPIO_PORT_D			; Load base address of GPIO Port D
 	LDRB r1, [r0, #GPIODATA] 	;Load contents of GPIODATA register for Port D
@@ -460,21 +471,34 @@ loopforkeypad:
 	STRB r1, [r0, #GPIODATA]	;store content into Port D Pin 2
 	LDR r0, GPIO_PORT_A			;Load base address of Port A to r0
 	LDRB r1, [r0, #GPIODATA]	;Load content of Port A
-	CMP r1, #0x4				;check if Port A Pin 2 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x4				;bit masking to check if 0x4 is there
+	CMP r2, #0x4				;check if Port A Pin 2 is pressed
 	BEQ checkfor7				;branch it it pressed for Pin 2
-	CMP r1, #0x8				;check if Port A Pin 3 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x8				;bit masking to check if 0x8 is there
+	CMP r2, #0x8				;check if Port A Pin 3 is pressed
 	BEQ checkfor8				;branch it it pressed for Pin 3
-	CMP r1, #0x10				;check if Port A Pin 4 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x10				;bit masking to check if 0x10 is there
+	CMP r2, #0x10				;check if Port A Pin 4 is pressed
 	BEQ checkfor9				;branch it it pressed for Pin 4
-		LDR r0, GPIO_PORT_D		;Load base address of GPIO Port D
+	LDR r0, GPIO_PORT_D			;Load base address of GPIO Port D
 	LDRB r1, [r0, #GPIODATA] 	;Load contents of GPIODATA register for Port D
 	BIC r1, r1, #0x4			;clear bit 2 for Port D Pin 2
 	ORR r1, r1, #0x8			;set bit 3 for Port D Pin 2 to give power to pin 3
 	STRB r1, [r0, #GPIODATA]	;store content into Port D Pin 3
 	LDR r0, GPIO_PORT_A			;Load base address of Port A to r0
 	LDRB r1, [r0, #GPIODATA]	;Load content of Port A
-	CMP r1, #0x8				;check if Port A Pin 3 is pressed
+	MOV r2, r1					;copy r1 into r2
+	AND r2, #0x8				;bit masking to check if 0x8 is there
+	CMP r2, #0x8				;check if Port A Pin 3 is pressed
 	BEQ checkfor0				;branch it it pressed for Pin 3
+	LDR r0, GPIO_PORT_D			;Load base address of GPIO Port D
+	LDRB r1, [r0, #GPIODATA] 	;Load contents of GPIODATA register for Port D
+	BIC	r1, r1, #0x8			;clear bit 3 for Port D Pin 3
+	ORR r1, r1, #0x1			;set bit 1 for Port D Pin 0
+	STRB r1, [r0, #GPIODATA]	;store content into Port D Pin 0
 	B loopforkeypad
 checkfor1:
 	MOV r0, #1					;put 1 to r0
