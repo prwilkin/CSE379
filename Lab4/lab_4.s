@@ -1,22 +1,14 @@
 	.data
 
 menu_prompt: 					.string "Testing Menu",0xA,0xD,0x00
-output_character_prompt: 		.string "Test ouput_character: Press [1]",0xA,0xD,0x00
-read_character_prompt: 			.string "Test read_chracter: Press [2]",0xA,0xD,0x00
-read_string_prompt: 			.string "Test read_string: Press [3]",0xA,0xD,0x00
-output_string_prompt: 			.string "Test output_string: Press [4]",0xA,0xD,0x00
-read_from_push_btns_prompt: 	.string "Test read_from_push_btns: Press [5]",0xA,0xD,0x00
-illuminate_LEDs_prompt: 		.string "Test illuminate_LEDs: Press [6]",0xA,0xD,0x00
-illuminate_RGB_LED_prompt: 		.string "Test illuminate_RGB_LED: Press [7]",0xA,0xD,0x00
-read_tiva_push_button_prompt: 	.string "Test read_tiva_push_button: Press [8]",0xA,0xD,0x00
-read_keypad_prompt: 			.string "Test read_keypad: Press [9]",0xA,0xD,0x00
+read_from_push_btns_prompt: 	.string "Test read_from_push_btns: Press [1]",0xA,0xD,0x00
+illuminate_LEDs_prompt: 		.string "Test illuminate_LEDs: Press [2]",0xA,0xD,0x00
+illuminate_RGB_LED_prompt: 		.string "Test illuminate_RGB_LED: Press [3]",0xA,0xD,0x00
+read_tiva_push_button_prompt: 	.string "Test read_tiva_push_button: Press [4]",0xA,0xD,0x00
+read_keypad_prompt: 			.string "Test read_keypad: Press [5]",0xA,0xD,0x00
 quit_prompt:					.string "To quit: Press [ESC]",0xA,0xD,0x00
 rerun_prompt:					.string "To rerun test: Press [TAB]",0xA,0xD,0x00
 
-output_character_name:			.string "output_character ",0x00
-read_character_name:			.string "read_character ",0x00
-read_string_name:				.string "read_string ",0x00
-output_string_name:				.string "output_string ",0x00
 read_from_push_btns_name:		.string "read_from_push_btns ",0x00
 illuminate_LEDs_name:			.string "illuminate_LEDs ",0x00
 illuminate_RGB_LED_name:		.string "illuminate_RGB_LED ",0x00
@@ -25,7 +17,11 @@ read_keypad_name:				.string "read_keypad ",0x00
 
 read_from_push_btns_inst:		.string "",0xA,0xD,0x00
 illuminate_LEDs_inst:	 		.string "",0xA,0xD,0x00
-illuminate_RGB_LED_inst: 		.string "",0xA,0xD,0x00
+illuminate_RGB_LED_inst: 		.string "Refer to the light on the tiva board",0xA,0xD
+illuminate_RGB_LED_inst2:		.string "Red: Press [1]",OxA,OxD,"Geen: Press [2]",0xA,0xD
+illuminate_RGB_LED_inst3:		.string "Geen: Press [2]",0xA,0xD,"Blue: Press [3]",0xA,0xD
+illuminate_RGB_LED_inst4:		.string "Purple: Press [4]",0xA,0xD,"Yellow: Press [5]",0xA,0xD
+illuminate_RGB_LED_inst5:		.string "White: Press [6]",0xA,0xD,"Off: Press [7]",0xA,0xD,0x00
 read_tiva_push_button_inst: 	.string "",0xA,0xD,0x00
 read_keypad_inst:	 			.string "",0xA,0xD,0x00
 
@@ -72,10 +68,10 @@ ptr_to_illuminate_RGB_LED_inst: 		.word illuminate_RGB_LED_inst
 ptr_to_read_tiva_push_button_inst: 		.word read_tiva_push_button_inst
 ptr_to_read_keypad_inst:	 			.word read_keypad_inst
 
-ptr_to_:								.word
+;ptr_to_:								.word
 
 
-lab4:
+;lab4:
 	PUSH {lr} ; Store register lr on stack
 
 	BL uart_init
@@ -86,22 +82,14 @@ lab4_loop:
 	BL read_character
 	SUB r0, r0, #48
 	CMP r0, #1
-	BEQ output_character_menu
-	CMP r0, #2
-	BEQ read_character_menu
-	CMP r0, #3
-	BEQ read_string_menu
-	CMP r0, #4
-	BEQ output_string_menu
-	CMP r0, #5
 	BEQ read_from_push_btns_menu
-	CMP r0, #6
+	CMP r0, #2
 	BEQ illuminate_LEDs_menu
-	CMP r0, #7
+	CMP r0, #3
 	BEQ illuminate_RGB_LED_menu
-	CMP r0, #8
+	CMP r0, #4
 	BEQ read_tiva_push_button_menu
-	CMP r0, #9
+	CMP r0, #5
 	BEQ read_keypad_menu
 	CMP r0, #0x1B
 	BEQ QUIT
@@ -128,12 +116,6 @@ main_menu:
 
 	ldr r0, ptr_to_menu_prompt
 	BL output_string
-	ldr r0, ptr_to_output_character_prompt
-	BL output_string
-	ldr r0, ptr_to_read_character_prompt
-	BL output_string
-	ldr r0, ptr_to_read_string_prompt
-	BL output_string
 	ldr r0, ptr_to_read_from_push_btns_prompt
 	BL output_string
 	ldr r0, ptr_to_illuminate_LEDs_prompt
@@ -151,86 +133,6 @@ main_menu:
 	MOV pc, lr
 	;##################
 
-output_character_menu:
-	PUSH {lr}
-
-	BL clr_page
-	LDR r0, ptr_to_output_character_name
-	BL output_string
-	LDR r0, ptr_to_menu_prompt
-	BL output_string
-	LDR r0,
-	BL output_string
-	;LDR r0, rerun_prompt	This test will rerun
-	;BL output_string		automatically until canceled
-	LDR r0, ptr_to_quit_prompt
-	BL output_string
-output_character_menu_loop:
-	BL read_character
-	CMP r0, #0x1B
-	BEQ end_output_character_menu
-	BL output_character
-	B output_character_menu_loop
-
-end_output_character_menu:
-	POP {lr}
-	MOV pc, lr
-	;##################
-
-read_character_menu:
-	PUSH {lr}
-
-	BL clr_page
-	LDR r0, ptr_to_read_character_name
-	BL output_string
-	LDR r0, ptr_to_menu_prompt
-	BL output_string
-	LDR r0,
-	BL output_string
-	LDR r0, rerun_prompt
-	BL output_string
-	LDR r0, ptr_to_quit_prompt
-	BL output_string
-
-	POP {lr}
-	MOV pc, lr
-
-read_string_menu:
-	PUSH {lr}
-
-	BL clr_page
-	LDR r0, ptr_to_read_string_name
-	BL output_string
-	LDR r0, ptr_to_menu_prompt
-	BL output_string
-	LDR r0,
-	BL output_string
-	LDR r0, rerun_prompt
-	BL output_string
-	LDR r0, ptr_to_quit_prompt
-	BL output_string
-
-	POP {lr}
-	MOV pc, lr
-
-output_string_menu:
-	PUSH {lr}
-
-	BL clr_page
-	LDR r0, ptr_to_output_string_name
-	BL output_string
-	LDR r0, ptr_to_menu_prompt
-	BL output_string
-	LDR r0,
-	BL output_string
-	LDR r0, rerun_prompt
-	BL output_string
-	LDR r0, ptr_to_quit_prompt
-	BL output_string
-
-	POP {lr}
-	MOV pc, lr
-
 read_from_push_btns_menu:
 	PUSH {lr}
 
@@ -239,9 +141,9 @@ read_from_push_btns_menu:
 	BL output_string
 	LDR r0, ptr_to_menu_prompt
 	BL output_string
-	LDR r0,
+	LDR r0, ptr_to_read_from_push_btns_inst
 	BL output_string
-	LDR r0, rerun_prompt
+	LDR r0, ptr_to_rerun_prompt
 	BL output_string
 	LDR r0, ptr_to_quit_prompt
 	BL output_string
@@ -257,9 +159,9 @@ illuminate_LEDs_menu:
 	BL output_string
 	LDR r0, ptr_to_menu_prompt
 	BL output_string
-	LDR r0,
+	LDR r0, ptr_to_illuminate_LEDs_inst
 	BL output_string
-	LDR r0, rerun_prompt
+	LDR r0, ptr_to_rerun_prompt
 	BL output_string
 	LDR r0, ptr_to_quit_prompt
 	BL output_string
@@ -275,12 +177,17 @@ illuminate_RGB_LED_menu:
 	BL output_string
 	LDR r0, ptr_to_menu_prompt
 	BL output_string
-	LDR r0,
+	LDR r0, ptr_to_illuminate_RGB_LED_inst
 	BL output_string
-	LDR r0, rerun_prompt
+	LDR r0, ptr_to_rerun_prompt
 	BL output_string
 	LDR r0, ptr_to_quit_prompt
 	BL output_string
+illuminate_RGB_LED_handler:
+	BL read_character
+	SUB r0, r0, #48
+	CMP r0, #1
+	MOV r0, #0b
 
 	POP {lr}
 	MOV pc, lr
@@ -293,9 +200,9 @@ read_tiva_push_button_menu:
 	BL output_string
 	LDR r0, ptr_to_menu_prompt
 	BL output_string
-	LDR r0,
+	LDR r0, ptr_to_read_tiva_push_button_inst
 	BL output_string
-	LDR r0, rerun_prompt
+	LDR r0, ptr_to_rerun_prompt
 	BL output_string
 	LDR r0, ptr_to_quit_prompt
 	BL output_string
@@ -311,9 +218,9 @@ read_keypad_menu:
 	BL output_string
 	LDR r0, ptr_to_menu_prompt
 	BL output_string
-	LDR r0,
+	LDR r0, ptr_to_read_keypad_inst
 	BL output_string
-	LDR r0, rerun_prompt
+	LDR r0, ptr_to_rerun_prompt
 	BL output_string
 	LDR r0, ptr_to_quit_prompt
 	BL output_string
