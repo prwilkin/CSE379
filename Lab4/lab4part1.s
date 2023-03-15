@@ -1,7 +1,7 @@
 	.text
-	.global lab4
+	.global lab4part1
 
-lab4:
+lab4part1:
 	PUSH {lr}
 	;BL read_from_push_btn
 	BL illuminate_RGB_LED
@@ -57,30 +57,26 @@ illuminate_RGB_LED:
 	PUSH {lr}
 		;Red P1 Green P3 Blue P2
 		;system clock
-		MOV r0, #0xE000		;0x400FE000
-		MOVT r0, #0x400F
-		LDR r1, [r0, #0x608]
-		ORR r1, #0x20
-		STR r1, [r0, #0x608]
+		MOV r1, #0xE000		;0x400FE000
+		MOVT r1, #0x400F
+		LDR r2, [r1, #0x608]
+		ORR r2, #0x20
+		STR r2, [r1, #0x608]
 
 		;set direction
-		MOV r0, #0x5000
-		MOVT r0, #0x4002
-		LDR r1, [r0, #0x400]
-		ORR r1, #0xE
-		STR r1, [r0, #0x400]
+		MOV r1, #0x5000
+		MOVT r1, #0x4002
+		LDR r2, [r1, #0x400]
+		ORR r2, #0xE
+		STR r2, [r1, #0x400]
 
 		;set type (digital)
-		LDR r1, [r0, #0x51C]
-		ORR r1, #0xE
-		STR r1, [r0, #0x51C]
+		LDR r2, [r1, #0x51C]
+		ORR r2, #0xE
+		STR r2, [r1, #0x51C]
 
 		;led fireworks
-		;off #0x1
-		;red #0x2
-		;LDRB r1, [r0, #0x3FC]
-		MOV r1, #0x4
-		STR r1, [r0, #0x3FC]
+		STR r0, [r1, #0x3FC]
           ; Your code is placed here
 
 	POP {lr}
