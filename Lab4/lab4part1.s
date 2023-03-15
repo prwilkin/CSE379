@@ -67,17 +67,19 @@ illuminate_RGB_LED:
 		MOV r0, #0x5000
 		MOVT r0, #0x4002
 		LDR r1, [r0, #0x400]
-		ORR r1, #0xA
+		ORR r1, #0xE
 		STR r1, [r0, #0x400]
 
 		;set type (digital)
 		LDR r1, [r0, #0x51C]
-		ORR r1, #0xA
+		ORR r1, #0xE
 		STR r1, [r0, #0x51C]
 
 		;led fireworks
-		LDR r1, [r0, #0x3FC]
-		ORR r1, #0xA
+		;off #0x1
+		;red #0x2
+		;LDRB r1, [r0, #0x3FC]
+		MOV r1, #0x4
 		STR r1, [r0, #0x3FC]
           ; Your code is placed here
 

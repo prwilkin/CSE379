@@ -1,5 +1,4 @@
 	.data
-
 menu_prompt: 					.string "Testing Menu",0xA,0xD,0x00
 read_from_push_btns_prompt: 	.string "Test read_from_push_btns: Press [1]",0xA,0xD,0x00
 illuminate_LEDs_prompt: 		.string "Test illuminate_LEDs: Press [2]",0xA,0xD,0x00
@@ -18,7 +17,7 @@ read_keypad_name:				.string "read_keypad ",0x00
 read_from_push_btns_inst:		.string "",0xA,0xD,0x00
 illuminate_LEDs_inst:	 		.string "",0xA,0xD,0x00
 illuminate_RGB_LED_inst: 		.string "Refer to the light on the tiva board",0xA,0xD
-illuminate_RGB_LED_inst2:		.string "Red: Press [1]",OxA,OxD,"Geen: Press [2]",0xA,0xD
+;illuminate_RGB_LED_inst2:		.string "Red: Press [1]",OxA,OxD,"Geen: Press [2]",0xA,0xD
 illuminate_RGB_LED_inst3:		.string "Geen: Press [2]",0xA,0xD,"Blue: Press [3]",0xA,0xD
 illuminate_RGB_LED_inst4:		.string "Purple: Press [4]",0xA,0xD,"Yellow: Press [5]",0xA,0xD
 illuminate_RGB_LED_inst5:		.string "White: Press [6]",0xA,0xD,"Off: Press [7]",0xA,0xD,0x00
@@ -71,7 +70,7 @@ ptr_to_read_keypad_inst:	 			.word read_keypad_inst
 ;ptr_to_:								.word
 
 
-;lab4:
+lab4s:
 	PUSH {lr} ; Store register lr on stack
 
 	BL uart_init
