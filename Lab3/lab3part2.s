@@ -1,11 +1,12 @@
-		.data
+				.data
 
 	.global prompt
 	.global results
 	.global num_1_string
 	.global num_2_string
 
-prompt:	.string "Enter Numbers\|Average is |\Press Enter to run again|", 0		;"Your prompts are placed here", 0
+prompt:	.string "Enter Numbers",0xA,0xD,0x00,0xA,0xD,"Average is ",0x00,0xA,0xD,"Press Enter to run again or q to quit",0xA,0xD,0x00
+				;"Your prompts are placed here", 0
 result:	.string "Your results are reported here", 0
 num_1_string: 	.string "Place holder string for your first number", 0
 num_2_string:  	.string "Place holder string for your second number", 0
@@ -27,17 +28,14 @@ lab3:
 	ldr r6, ptr_to_num_1_string
 	ldr r7, ptr_to_num_2_string
 	BL uart_init
-	MOV r0, #0x12
-	STRB r0, [r4, #0xD]	;new line after 'Enter Numbers' prompt
-	STRB r0, [r4, #0xE]	;new line before 'Press Enter to run again' prompt
-	MOV r0, #0x00
-	STRB r0, [r4, #0xE]		;null after 'Enter Numbers\n'
-	STRB r0, [r4, #0x1A]	;null after 'Average is '
-	STRB r0, [r4, #0x34]	;null after '\nPress Enter to run again'
 	MOV r0, r4			;set r0 to base addy for prompt
 	BL output_string	;call <-- to print prompt
 	MOV r0, r6			;set r0 to base addy for 1st number
 	BL read_string		;call <-- to get number
+	MOV r0, #0xA
+	BL output_character
+	MOV r0, #0xD
+	BL output_character
 	MOV r0, r7			;set r0 to base addy for 2nd number
 	BL read_string		;call <-- to get number
 	MOV r0, r6			;set r0 to base addy for 1st number
@@ -48,21 +46,25 @@ lab3:
 	MOV r1, r0			;stores 2nd number in r1
 	POP {r0}			;pop 1st number from stack
 	ADD r0, r0, r1		;begin to calculate avg
-	SDIV r0, r0, #2		;divide tot by 2 for avg
+	MOV r2, #2
+	SDIV r0, r0, r2		;divide tot by 2 for avg
 	MOV r1, r5			;pass addy of prompt
 	BL int2string		;call <-- to convert average to string
 	MOV r0, r4			;set r0 to base addy for prompt
-	ADD r0,	r0, #0xF	;offset base addy
+	ADD r0,	r0, #0x10	;offset base addy
 	BL output_string	;call <-- to print prompt
 	MOV r0, r5			;set r0 base addy result
 	BL output_string	;call <-- to print result
 	MOV r0, r4			;set r0 to base addy for prompt
-	ADD r0,	r0, #0x		;offset base addy
+	ADD r0, r0, #0x1E	;offset base addy
 	BL output_string	;call <-- to print prompt
 reset_lab3:
 	BL read_character	;get char
-	CMP r0, #0x13		;cmp for CR
+	CMP r0, #0x71		;check for q
+	BEQ QUIT
+	CMP r0, #0xD		;cmp for CR
 	BNE reset_lab3		;not CR then loop
+	POP {lr}
 	BEQ	lab3			;if CR then reset program
 		; Your code is placed here.  This is your main routine for
 		; Lab #3.  This should call your other routines such as
@@ -95,10 +97,11 @@ STORE_num_string:
 	PUSH {r0}		;push addy to stack
 	MOV r0, r1		;store char for output_character
 	BL output_character
+	CMP r0, #0x00
 	POP {r0}		;pop addy from stack
-	BL read_string_loop
+	BNE read_string_loop
 		; Your code for your read_string routine is placed here
-end_read_string
+end_read_string:
 	POP {lr}
 	mov pc, lr
 	;############ read_string
@@ -130,17 +133,17 @@ end_output_string:
 
 read_character:
 	PUSH {lr}   ; Store register lr on stack
-
-read_character_loop:
 	MOV r2, #0xC000
  	MOVT r2, #0x4000
+
+read_character_loop:
 	LDRB r1, [r2, #U0FR]	;get RxFE bit
 	AND r1, #0x10			;isolate OxFE bit
 	CMP r1, #0x10			;if bit 1 branch
 	BEQ read_character_loop
-	LDRB r0, [r2]			;if 0 store in data
+	LDRB r0, [r2]			;load data
 		; Your code for your read_character routine is placed here
-
+end_read_character:
 	POP {lr}
 	mov pc, lr
 	;############ read_character
@@ -200,12 +203,12 @@ uart_init:
 	;Use 8-bit word length, 1 stop bit, no parity
 	MOV r0, #0xC02C		;set address to 0x4000C02C
 	MOVT r0, #0x4000
-	MOV r1, #0x3C
+	MOV r1, #0x60
 	STR r1, [r0]
 	;Enable UART0 Control
 	MOV r0, #0xC030		;set address to 0x4000C030
 	MOVT r0, #0x4000
-	MOV r1, #12D
+	MOV r1, #0x301
 	STR r1, [r0]
 	;Make PA0 and PA1 as Digital Ports
 	MOV r0, #0x451C		;set address to 0x4000451C
@@ -235,36 +238,98 @@ uart_init:
 
 int2string:
 	PUSH {lr}   ; Store register lr on stack
-	
-loopint2string:	
-	LDRB r0, [r1]	 	;get the int 
+				;r0  = avg
+				;r1  = addy
+				;r4 or higher must push pop
+				;## not passed in ##
+				;r2  = avg size (lmao)
+	PUSH {r4}	;r4  = didgit compare
+				;	 = avg maniuplated
+	PUSH {r5}	;r5  = temp var
+				;	 = digit to be stored
+	MOV r5, #1		;init
+	PUSH {r9}	;r9  = BASETEN var
+	MOV r9, #10		;init
+	PUSH {r10}	;r10 = 10
+	MOV r10, #10	;init
+
+integer_digit:		;get size of avg of 1
+	MOV r4, #9		;load 9 for digit compare
+	MOV r2, #1		;load 1 to count digits
+	CMP r0, r4		;compare number and didgit compre to determine if more then one digit
+	BGT COMPARE		;if more then one digit jump to compare
+	MOV r2, #1		;return 1 as digit count
+
+COMPARE:			;get size of average >1
+	ADD r2, r2, #1
+	MUL r4, r4, r10		;jump another digit ie 9 to 90
+	ADD r4, r4, #9		;push to highest for digit ie 99 for two digits
+	CMP r0, r4
+	BGT COMPARE			;if greater then check for another digit
+
+	MOV r4, r0		;r4 will be maniuptlated
+	CMP r2, #1		;if first digit then base being 10 works
+	BEQ MODULO
+
+BASETEN:			;this will calulate the size used for MOD ie. 10/100/1000
+	ADD r5, r5, #1
+	MUL r9, r9, r10
+	CMP r2, r5
+	BNE BASETEN
+
+loopint2string:
+
+MODULO:
+	SDIV r5, r4, r9		;input/base 10 mod
+	MUL r5, r5, r9		;qoutient*base 10 mod
+	SUB r5, r4, r5		;input - product = remainder
+	CMP r1, #1
+	BNE MODULOTWO
+	B STORE_int2string
+
+MODULOTWO:
+	SDIV r9, r9, r10
+	SDIV r5, r5, r9
+
+STORE_int2string:
+	ADD r5, r5, #48   	;convert int into string
+	STRB r5, [r1] 		;store the string into the memory address
+	CMP r2, #1 		  	;check if last didigt
+	BEQ end_int2string 	;exit if it null
 	ADD r1, r1, #1		;add 1 to r1 to move to the next address
-	CMP r0, #0 		  	;check if it null 
-	BEQ exit 		  	;exit if it null
-	ADD r0, r0, #48   	;convert int into string
-	STRB r0, [r1] 		;store the string into the memory address
+	SUB r2, r2, #1		;next didgit
+
 	B loopint2string    ;go back to loop
-exit:
+end_int2string:
+	MOV r4, #0x00
+	STRB r4, [r1, #1]
+	POP {r10}	;reset stack and regs
+	POP {r9}
+	POP {r5}
+	POP {r4}
 		; Your code for your int2string routine is placed here
-		
+
 	POP {lr}
 	mov pc, lr
 
 string2int:
 	PUSH {lr}   ; Store register lr on stack
+	MOV r2, #10
+	MOV r3, #0
 loopstring2int:
 	LDRB r1, [r0]		;get the string
 	ADD r0, r0, #1		;add 1 to r0 to move to the next address
 	CMP r1, #0			;check if it null
 	BEQ leave			;exit if it null
 	SUB r1, r1, #48		;convert string to int
-	STRB r1, [r0]		;store the int into the memory address
+	ADD r3, r3, r1
+	MUL r3, r3, r2		;open next didgit
 	B loopstring2int	;go back to loop
 leave:
-
+	UDIV r0, r3, r2		;delete last didgit
 		; Your code for your string2int routine is placed here
-
 	POP {lr}
 	mov pc, lr
 
+QUIT:
 	.end
