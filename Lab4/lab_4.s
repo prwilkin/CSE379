@@ -1,13 +1,13 @@
 	.data
 
-menu_prompt: 					.string "Testing Menu",0xA,0xD,0x00
-read_from_push_btns_prompt: 	.string "Test read_from_push_btns: Press [1]",0xA,0xD,0x00
+menu_prompt: 				.string "Testing Menu",0xA,0xD,0x00
+read_from_push_btns_prompt: 		.string "Test read_from_push_btns: Press [1]",0xA,0xD,0x00
 illuminate_LEDs_prompt: 		.string "Test illuminate_LEDs: Press [2]",0xA,0xD,0x00
 illuminate_RGB_LED_prompt: 		.string "Test illuminate_RGB_LED: Press [3]",0xA,0xD,0x00
-read_tiva_push_button_prompt: 	.string "Test read_tiva_push_button: Press [4]",0xA,0xD,0x00
+read_tiva_push_button_prompt: 		.string "Test read_tiva_push_button: Press [4]",0xA,0xD,0x00
 read_keypad_prompt: 			.string "Test read_keypad: Press [5]",0xA,0xD,0x00
-quit_prompt:					.string "To quit: Press [ESC]",0xA,0xD,0x00
-rerun_prompt:					.string "To rerun test: Press [TAB]",0xA,0xD,0x00
+quit_prompt:				.string "To quit: Press [ESC]",0xA,0xD,0x00
+rerun_prompt:				.string "To rerun test: Press [TAB]",0xA,0xD,0x00
 
 read_from_push_btns_name:		.string "read_from_push_btns ",0x00
 illuminate_LEDs_name:			.string "illuminate_LEDs ",0x00
@@ -15,11 +15,11 @@ illuminate_RGB_LED_name:		.string "illuminate_RGB_LED ",0x00
 read_tiva_push_button_name:		.string "read_tiva_push_button ",0x00
 read_keypad_name:				.string "read_keypad ",0x00
 
-read_from_push_btns_inst:		.string " ",0xA,0xD,0xA,0xD,0x00
+read_from_push_btns_inst:		.string "To test, press button and the number of the button pressed, as numbered on the Alice Board, will be displayed. To rerun, follow the rerun prompt.",0xA,0xD,0xA,0xD,0x00
 illuminate_LEDs_inst:	 		.string "To turn on a light press [+] and then the number correpsonding to the light numbering on the board.",0xA,0xD,"To turn off a light press [-] and then the number correpsonding to the light on the board.",0xA,0xD,0xA,0xD,0x00
 illuminate_RGB_LED_inst: 		.string "Refer to the light on the tiva board",0xA,0xD,"Red: Press [1]",0xA,0xD,"Blue: Press [2]",0xA,0xD,"Green: Press [3]",0xA,0xD,"Purple: Press [4]",0xA,0xD,"Yellow: Press [5]",0xA,0xD,"White: Press [6]",0xA,0xD,"Off: Press [7]",0xA,0xD,0xA,0xD,0x00
-read_tiva_push_button_inst: 	.string "To test, press SW1 on the Tiva board. A message will return verifying the press occured. To test again follow the rerun prompt below.",0xA,0xD,0xA,0xD,0x00
-read_keypad_inst:	 			.string "To test, press the keypad. The number you pressed on the keypad will be displayed. To test again follow the rerun prompt below.",0xA,0xD,0xA,0xD,0x00
+read_tiva_push_button_inst: 		.string "To test, press SW1 on the Tiva board. A message will return verifying the press occured. To test again follow the rerun prompt below.",0xA,0xD,0xA,0xD,0x00
+read_keypad_inst:	 		.string "To test, press the keypad. The number you pressed on the keypad will be displayed. To test again follow the rerun prompt below.",0xA,0xD,0xA,0xD,0x00
 
 read_from_push_btns_rtn:		.string "Button #",0x00
 read_tiva_pushbutton_rtn:		.string "Pressed",0xA,0xD,0x00
@@ -40,26 +40,26 @@ read_tiva_pushbutton_rtn:		.string "Pressed",0xA,0xD,0x00
 	.global keypad_init
 	.global lab4
 
-ptr_to_menu_prompt: 					.word menu_prompt
+ptr_to_menu_prompt: 				.word menu_prompt
 ptr_to_read_from_push_btns_prompt: 		.word read_from_push_btns_prompt
 ptr_to_illuminate_LEDs_prompt: 			.word illuminate_LEDs_prompt
 ptr_to_illuminate_RGB_LED_prompt: 		.word illuminate_RGB_LED_prompt
-ptr_to_read_tiva_push_button_prompt: 	.word read_tiva_push_button_prompt
-ptr_to_read_keypad_prompt: 				.word read_keypad_prompt
-ptr_to_quit_prompt:						.word quit_prompt
-ptr_to_rerun_prompt:					.word rerun_prompt
+ptr_to_read_tiva_push_button_prompt: 		.word read_tiva_push_button_prompt
+ptr_to_read_keypad_prompt: 			.word read_keypad_prompt
+ptr_to_quit_prompt:				.word quit_prompt
+ptr_to_rerun_prompt:				.word rerun_prompt
 
 ptr_to_read_from_push_btns_name:		.word read_from_push_btns_name
 ptr_to_illuminate_LEDs_name:			.word illuminate_LEDs_name
 ptr_to_illuminate_RGB_LED_name:			.word illuminate_RGB_LED_name
 ptr_to_read_tiva_push_button_name:		.word read_tiva_push_button_name
-ptr_to_read_keypad_name:				.word read_keypad_name
+ptr_to_read_keypad_name:			.word read_keypad_name
 
 ptr_to_read_from_push_btns_inst:		.word read_from_push_btns_inst
 ptr_to_illuminate_LEDs_inst:	 		.word illuminate_LEDs_inst
 ptr_to_illuminate_RGB_LED_inst: 		.word illuminate_RGB_LED_inst
 ptr_to_read_tiva_push_button_inst: 		.word read_tiva_push_button_inst
-ptr_to_read_keypad_inst:	 			.word read_keypad_inst
+ptr_to_read_keypad_inst:	 		.word read_keypad_inst
 
 ptr_to_read_from_push_btns_rtn:			.word read_from_push_btns_rtn
 ptr_to_read_tiva_pushbutton_rtn:		.word read_tiva_pushbutton_rtn
