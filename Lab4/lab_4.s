@@ -16,10 +16,10 @@ read_tiva_push_button_name:		.string "read_tiva_push_button ",0x00
 read_keypad_name:				.string "read_keypad ",0x00
 
 read_from_push_btns_inst:		.string " ",0xA,0xD,0xA,0xD,0x00
-illuminate_LEDs_inst:	 		.string "To turn on a light press [+] and then the number correpsonding to the light numbering on the board.",0xA,0xD,"To turn off a light press [-] and then the number correpsonding to the lgiht on the board.",0xA,0xD,0xA,0xD,0x00
+illuminate_LEDs_inst:	 		.string "To turn on a light press [+] and then the number correpsonding to the light numbering on the board.",0xA,0xD,"To turn off a light press [-] and then the number correpsonding to the light on the board.",0xA,0xD,0xA,0xD,0x00
 illuminate_RGB_LED_inst: 		.string "Refer to the light on the tiva board",0xA,0xD,"Red: Press [1]",0xA,0xD,"Blue: Press [2]",0xA,0xD,"Green: Press [3]",0xA,0xD,"Purple: Press [4]",0xA,0xD,"Yellow: Press [5]",0xA,0xD,"White: Press [6]",0xA,0xD,"Off: Press [7]",0xA,0xD,0xA,0xD,0x00
-read_tiva_push_button_inst: 	.string "To test, press SW1 on the Tiva board. A message will return verifying the press occured. To test again",0xA,0xD,"follow the rerun prompt below.",0xA,0xD,0xA,0xD,0x00
-read_keypad_inst:	 			.string "To test, press the keypad. The number you pressed on the keypad will be displayed. To test again follow",0xA,0xD,"the rerun prompt below.",0xA,0xD,0xA,0xD,0x00
+read_tiva_push_button_inst: 	.string "To test, press SW1 on the Tiva board. A message will return verifying the press occured. To test again follow the rerun prompt below.",0xA,0xD,0xA,0xD,0x00
+read_keypad_inst:	 			.string "To test, press the keypad. The number you pressed on the keypad will be displayed. To test again follow the rerun prompt below.",0xA,0xD,0xA,0xD,0x00
 
 read_from_push_btns_rtn:		.string "Button #",0x00
 read_tiva_pushbutton_rtn:		.string "Pressed",0xA,0xD,0x00
