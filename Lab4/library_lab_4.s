@@ -1,128 +1,63 @@
 	.text
-	.global uart_init
-	.global gpio_btn_and_LED_init
-	.global keypad_init ; Downloaded from the course website
-	.global output_character
-	.global read_character
-	.global read_string
-	.global output_string
-	.global read_from_push_btns
-	.global illuminate_LEDs
-	.global illuminate_RGB_LED
-	.global read_tiva_push_button
-	.global read_keypad
+	.global lab4
+	.global uart_init 						;Line 30
+	.global gpio_btn_and_LED_init			;Line 90
+	.global keypad_init 					;Line 180 Downloaded from the course website
+	.global output_character				;Line 210
+	.global read_character					;Line 230
+	.global read_string						;Line 250
+	.global output_string					;Line 270
+	.global read_from_push_btns				;Line 290
+	.global illuminate_LEDs					;Line 360
+	.global illuminate_RGB_LED				;Line 370
+	.global read_tiva_push_button			;Line 390
+	.global read_keypad						;Line 410
+	;listed in order they appear in file
+	;line #'s are rough estimates
 
 **************************************************************************************************
 SYSCTL:			.word	0x400FE000	; Base address for System Control
 GPIO_PORT_A:	.word	0x40004000	; Base address for GPIO Port A
+GPIO_PORT_B:	.word	0x40005000	; Base address for GPIO Port B
 GPIO_PORT_D:	.word	0x40007000	; Base address for GPIO Port D
+GPIO_PORT_F:	.word	0x40025000	; Base address for GPIO Port F
 RCGCGPIO:		.equ	0x608		; Offset for GPIO Run Mode Clock Gating Control Register
 GPIODIR:		.equ	0x400		; Offset for GPIO Direction Register
 GPIODEN:		.equ	0x51C		; Offset for GPIO Digital Enable Register
-GPIODATA:		.equ	0x3FC		; Offset for GPIO Data Register
-U0FR: 			.equ	0x18		; UART0 Flag Register
+GPIODATA:		.equ	0x3FC		; Offset for GPIO Data
+UART0:			.word	0x4000C000	; Base address for UART0
+U0FR: 			.equ 	0x18		; UART0 Flag Register
 **************************************************************************************************
-
-*********************************
-* KEYPAD_INIT					;
-* This subroutine initializes 	;
-*	the daughter board keypad	;
-*								;
-* Authors:						;
-*	Caroline Hart				;
-*	Anthony Roberts				;
-								;
-* Register Usage:				;
-*	R0	- stores an address		;
-*	R1	- stores the contents	;
-*		   of a memory register	;
-keypad_init:					;
-	PUSH {lr}					;
-* Enable the clock for GPIO Port A and Port D
-	LDR r1, SYSCTL				; Load base address of System Control
-	LDRB r0, [r1,#RCGCGPIO]		; Load contents of RCGCGPIO register
-	ORR r0, r0, #0x9			; Set bit 3 to enable and provide a clock to GPIO Port A & Port D
-	STRB r0, [r1,#RCGCGPIO]		; Store modifed value of RCGCGPIO register back to memory
-								;
-* Set GPIO Port D, Pints 0-3 direction to Output
-	LDR r1, GPIO_PORT_D			; Load base address of GPIO Port D
-	LDRB r0, [r1, #GPIODIR] 	; Load contents of GPIODIR register
-	ORR r0, r0, #0xF			; Set bits 0-3 to set GPIO direction to Output
-	STRB r0, [r1, #GPIODIR] 	; Store modifed value of GPIODIR register back to memory
-								;
-* Set GPIO Port A, Pins 2-5 direction to Input
-	LDR r1, GPIO_PORT_A			; Load base address of GPIO Port A
-	LDRB r0, [r1, #GPIODIR] 	; Load contents of GPIODIR register
-	BIC r0, r0, #0x3C			; Clear bits 2-5 to set GPIO direction to input
-	STRB r0, [r1, #GPIODIR] 	; Store modifed value of GPIODIR register back to memory
-								;
-* Enable GPIO Port D, Pins 0-3 as Digital
-	LDR r1, GPIO_PORT_D			; Load base address of GPIO Port D
-	LDRB r0, [r1, #GPIODEN] 	; Load contents of GPIODEN register
-	ORR r0, r0, #0xF			; Set bits 0-3 to set pins to digital
-	STRB r0, [r1, #GPIODEN] 	; Store modifed value of GPIODEN register back to memory
-								;
-* Enable GPIO Port A, Pins 2-5 as Digital
-	LDR r1, GPIO_PORT_A			; Load base address of GPIO Port A
-	LDRB r0, [r1, #GPIODEN] 	; Load contents of GPIODEN register
-	ORR r0, r0, #0x3C			; Set bits 2-5 to set pins to digital
-	STRB r0, [r1, #GPIODEN] 	; Store modifed value of GPIODEN register back to memory
-								;
-* Enable GPIO Port D, Pins 0-3  ;
-	LDR r1, GPIO_PORT_D			; Load base address of GPIO Port D
-	LDRB r0, [r1, #GPIODATA] 	; Load contents of GPIODATA register
-	ORR r0, r0, #0xF			; Set bits 0-3 to set pins to digital
-	STRB r0, [r1, #GPIODATA] 	; Store modifed value of GPIODATA register back to memory
-								;
-	POP {pc}					; Return to caller
-* END OF KEYPAD_INIT			;
-*********************************
-
 
 ;UART_INIT_SUBROUTINE
 uart_init:
-	PUSH {lr}  ; Store register lr on stack
-
+	PUSH {lr} ; Store register lr on stack
 	;Provide clock to UART0
-	MOV r0, #0xE618
-	MOVT r0, #0x400F	;set address to 0x400FE618
-	MOV r1, #0x1		;mark bit #0 as 1
-	STR r1,	[r0]		;store @ address
+	LDR r0, SYSCTL			;set address to System Control
+	MOV r1, #0x1			;mark bit #0 as 1
+	STR r1,	[r0, #0x618]	;store @ address
 	;Enable clock to PortA
-	MOV r0, #0xE608		;set address to 0x400FE608
-	MOVT r0, #0x400F
-	MOV r1, #0x1		;mark bit #0 as 1
-	STR r1, [r0]		;store @ address
+	MOV r1, #0x1			;mark bit #0 as 1
+	STR r1, [r0, #0x608]	;store @ address
 	;Disable UART0 Control
-	MOV r0, #0xC030
-	MOVT r0, #0x4000	;set address to 0x4000C030
+	LDR r0, UART0			;set address to UART0
 	MOV r1, #0x0
-	STR r1, [r0]		;store @ address
+	STR r1, [r0, #0x30]		;store @ address
 	;Set UART0_IBRD_R for 115,200 baud
-	MOV r0, #0xC024		;set address to 0x4000C024
-	MOVT r0, #0x4000
 	MOV r1, #0x8
-	STR r1, [r0]		;store @ address
+	STR r1, [r0, #0x24]		;store @ address
 	;Set UART0_FBRD_R for 115,200 baud
-	MOV r0, #0xC028		;set address to 0x4000C028
-	MOVT r0, #0x4000
 	MOV r1, #0x2C
-	STR r1, [r0]
+	STR r1, [r0, #0x28]
 	;Use System Clock
-	MOV r0, #0xCFC8		;set address to 0x4000CFC8
-	MOVT r0, #0x4000
 	MOV r1, #0x0
-	STR r1, [r0]
+	STR r1, [r0, #0xFC8]
 	;Use 8-bit word length, 1 stop bit, no parity
-	MOV r0, #0xC02C		;set address to 0x4000C02C
-	MOVT r0, #0x4000
 	MOV r1, #0x60
-	STR r1, [r0]
+	STR r1, [r0, #0x2C]
 	;Enable UART0 Control
-	MOV r0, #0xC030		;set address to 0x4000C030
-	MOVT r0, #0x4000
 	MOV r1, #0x301
-	STR r1, [r0]
+	STR r1, [r0, #0x30]
 	;Make PA0 and PA1 as Digital Ports
 	MOV r0, #0x451C		;set address to 0x4000451C
 	MOVT r0, #0x4000
@@ -143,8 +78,8 @@ uart_init:
 	STR r1, [r0]
 
 	POP {lr}
-	mov pc, lr
-
+	MOV pc, lr
+	;############################################# uart_init END #############################################
 
 ;GPIO_BTN_AND_LED_INIT_SUBROUTINE
 gpio_btn_and_LED_init:
@@ -152,15 +87,13 @@ gpio_btn_and_LED_init:
 
 ;ENABLING 4 BUTTON ON ALICE EDUBASE BOARD
 	;enabling clock for Port D
-	MOV r0, #0xE000				;move memory address of clock to r0
-    MOVT r0, #0x400F
+	LDR r0, SYSCTL				;move memory address of clock to r0
     LDR r1, [r0, #0x608]		;load content of r0 with the offset of 0x608 to r1
     ORR r1, r1, #0x8			;set bit 4 to enable clock for Port D
     STR r1, [r0, #0x608]		;store r1  to r0 with offset of 0x608 enabling clock for Port D
 
     ;set GPIO Pin Direction as Input for Port D Pin 0 - 3
-    MOV r0, #0x7000				;move memory address of Port D base address to r0
-    MOVT r0, #0x4000
+    LDR r0, GPIO_PORT_D				;move memory address of Port D base address to r0
     LDR r1, [r0, #0x400]		;load content of r0 with offset of 0x400 to r1
     BIC r1, r1, #0xF			;bitwise manipulation to clear bit in Pin 0 - 3
     STR r1, [r0, #0x400]		;store r1 into GPIO Pin Direction as Input for Port D Pin 0 - 3
@@ -170,17 +103,15 @@ gpio_btn_and_LED_init:
 	ORR r1, #0xF				;set bit 0 - 3 to enable GPIO Pin 0 - 3 for Port D
 	STR r1, [r0, #0x51C]		;store r1 to r0 with offset of 0x51C enabling Port D Pin 0 - 3 as Digital Pin
 
-;ENABLING 4 RGB LIGHT ON ALICE EDUBASE BOARD
+;ENABLING 4 LED LIGHT ON ALICE EDUBASE BOARD
 	;enabling clock for Port B
-	MOV r0, #0xE000				;move memory address of clock to r0
-	MOVT r0, #0x400F
+	LDR r0, SYSCTL				;move memory address of clock to r0
 	LDR r1, [r0, #0x608]		;load content of r0 with offset of 0x608 to r1
 	ORR r1, #0x2				;set bit 1 to enable clock for Port B
 	STR r1, [r0, #0x608]		;store r1 into r0 with offset of 0x608 enabling clock in Port B
 
 	;set GPIO Pin Direction as Output for Port B Pin 0 - 3
-	MOV r0, #0x5000				;move memory address of Port B base address to r0
-	MOVT r0, #0x4000
+	LDR r0, GPIO_PORT_B		;move memory address of Port B base address to r0
 	LDR r1, [r0, #0x400]		;load content of r0 with offset of 0x400 to r1
 	ORR r1, #0xF				;bitwise manipluation to set bit 0 - 3 as 1 for Port B Pin 0 - 3
 	STR r1, [r0, #0x400]		;store r1 into GPIO Pin Direction as Output for Port B Pin 0 - 3
@@ -192,15 +123,13 @@ gpio_btn_and_LED_init:
 
 ;ENABLING SWITCH 1 ON TIVA BOARD
 	;enabling clock for Port F
-	MOV r0, #0xE000				;move memory address of clock to r0
-    MOVT r0, #0x400F
+	LDR r0, SYSCTL				;load memory address of clock to r0
     LDR r1, [r0, #0x608]		;load content of r0 with offset of 0x608 to r1
     ORR r1, r1, #0x20			;set bit 6 to enable clock for Port F
     STR r1, [r0, #0x608]		;store r1 into r0 with offset of 0x608 enabling clock in Port F
 
     ;set GPIO Pin Direction as Input for Port F
-    MOV r0, #0x5000				;move memory address of Port F base address to r0
-    MOVT r0, #0x4002
+    LDR r0, GPIO_PORT_F		;move memory address of Port F base address to r0
     LDR r1, [r0, #0x400]		;load content of r0 with offset of 0x400 to r1
     BIC r1, r1, #0x10			;bitwise manipulation to clear bit 5 for Port F Pin 4
     STR r1, [r0, #0x400]		;store r1 into GPIO Pin Direction as Input for Port F Pin 4
@@ -209,23 +138,21 @@ gpio_btn_and_LED_init:
     LDR r1, [r0, #0x51C]		;load content of r0 wuth offset of 0x51C to r1
 	ORR r1, #0x10				;bitwise manipluation to set bit 5 as 1 for Port F Pin 4
 	STR r1, [r0, #0x51C]		;store r1 to r0 with offset of 0x51C enabling Port F Pin 4 as Digital Pin
-	;Enable pull-up resistor for Port F
 
+	;Enable pull-up resistor for Port F
     LDR r1, [r0, #0x510]		;load content of r0 wuth offset of 0x510 to r1
 	ORR r1, #0x10				;set bit 5 to enable pull-up resistor for Pin 5 for Port F
 	STR r1, [r0, #0x510]		;store r1 into r0 enabling pull-up resistor for Pin 5 for Port F
 
 ;ENABLING RGB LIGHT ON TIVA C
 	;enabling clock for Port F
-	MOV r0, #0xE000				;move memory address of clock to r0
-	MOVT r0, #0x400F
+	LDR r0, SYSCTL			;move memory address of clock to r0
 	LDR r1, [r0, #0x608]		;load content of r0 with offset of 0x608 to r1
 	ORR r1, #0x20				;set bit 6 to enable clock for Port F
 	STR r1, [r0, #0x608]		;store r1 into r0 with offset of 0x608 enabling clock in Port F
 
 	;set GPIO Pin Direction as Output for Port F Pin 1 - 3
-	MOV r0, #0x5000				;move memory address of Port F base address to r0
-	MOVT r0, #0x4002
+	LDR r0, GPIO_PORT_F		;move memory address of Port F base address to r0
 	LDR r1, [r0, #0x400]		;load content of r0 with offset of 0x400 to r1
 	ORR r1, #0xE				;bitwise manipluation to set bit 1 - 3 as 1 for Port F Pin 1 - 3
 	STR r1, [r0, #0x400]		;store r1 into GPIO Pin Direction as Output for Port F Pin 1 - 3
@@ -237,6 +164,49 @@ gpio_btn_and_LED_init:
 
 	POP {lr}
 	MOV pc, lr
+	;############################################# gpio_btn_and_LED_init END #############################################
+
+keypad_init:
+	PUSH {lr}
+* Enable the clock for GPIO Port A and Port D
+	LDR r1, SYSCTL				; Load base address of System Control
+	LDRB r0, [r1,#RCGCGPIO]		; Load contents of RCGCGPIO register
+	ORR r0, r0, #0x9			; Set bit 3 to enable and provide a clock to GPIO Port A & Port D
+	STRB r0, [r1,#RCGCGPIO]		; Store modifed value of RCGCGPIO register back to memory
+
+* Set GPIO Port D, Pints 0-3 direction to Output
+	LDR r1, GPIO_PORT_D			; Load base address of GPIO Port D
+	LDRB r0, [r1, #GPIODIR] 	; Load contents of GPIODIR register
+	ORR r0, r0, #0xF			; Set bits 0-3 to set GPIO direction to Output
+	STRB r0, [r1, #GPIODIR] 	; Store modifed value of GPIODIR register back to memory
+
+* Set GPIO Port A, Pins 2-5 direction to Input
+	LDR r1, GPIO_PORT_A			; Load base address of GPIO Port A
+	LDRB r0, [r1, #GPIODIR] 	; Load contents of GPIODIR register
+	BIC r0, r0, #0x3C			; Clear bits 2-5 to set GPIO direction to input
+	STRB r0, [r1, #GPIODIR] 	; Store modifed value of GPIODIR register back to memory
+
+* Enable GPIO Port D, Pins 0-3 as Digital
+	LDR r1, GPIO_PORT_D			; Load base address of GPIO Port D
+	LDRB r0, [r1, #GPIODEN] 	; Load contents of GPIODEN register
+	ORR r0, r0, #0xF			; Set bits 0-3 to set pins to digital
+	STRB r0, [r1, #GPIODEN] 	; Store modifed value of GPIODEN register back to memory
+
+* Enable GPIO Port A, Pins 2-5 as Digital
+	LDR r1, GPIO_PORT_A			; Load base address of GPIO Port A
+	LDRB r0, [r1, #GPIODEN] 	; Load contents of GPIODEN register
+	ORR r0, r0, #0x3C			; Set bits 2-5 to set pins to digital
+	STRB r0, [r1, #GPIODEN] 	; Store modifed value of GPIODEN register back to memory
+
+* Enable GPIO Port D, Pins 0-3  ;
+	LDR r1, GPIO_PORT_D			; Load base address of GPIO Port D
+	LDRB r0, [r1, #GPIODATA] 	; Load contents of GPIODATA register
+	ORR r0, r0, #0xF			; Set bits 0-3 to set pins to digital
+	STRB r0, [r1, #GPIODATA] 	; Store modifed value of GPIODATA register back to memory
+
+	POP {pc}					; Return to caller
+	MOV pc, lr
+	;############################################# keypad_init END #############################################
 
 
 ;OUTPUT_CHARACTER_SUBROUTINE
@@ -244,24 +214,22 @@ output_character:
 	PUSH {lr}   ; Store register lr on stack
 
 output_character_loop:
-	MOV r2, #0xC000
- 	MOVT r2, #0x4000
-	LDRB r1, [r2, #U0FR]	;get TxFF bit
-	AND r1, #0x20			;isolate 0xFF bit
-	CMP r1, #0				;if bit 1 branch
+	LDR r2, UART0
+	LDRB r1, [r2, #U0FR]		;get TxFF bit
+	AND r1, #0x20				;isolate 0xFF bit
+	CMP r1, #0					;if bit 1 branch
 	BNE output_character_loop
-	STRB r0, [r2]			;if 0 store in data
-		; Your code for your output_character routine is placed here
+	STRB r0, [r2]				;if 0 store in data
 
 	POP {lr}
-	mov pc, lr
+	MOV pc, lr
+	;############################################# output_character END #############################################
 
 
 ;READ_CHARACTER_SUBROUTINE
 read_character:
 	PUSH {lr}   ; Store register lr on stack
-	MOV r2, #0xC000
- 	MOVT r2, #0x4000
+	LDR r2, UART0
 
 read_character_loop:
 	LDRB r1, [r2, #U0FR]	;get RxFE bit
@@ -272,67 +240,66 @@ read_character_loop:
 
 end_read_character:
 	POP {lr}
-	mov pc, lr
-
+	MOV pc, lr
+	;############################################# read_character END #############################################
 
 ;READ_STRING_SUBROUTINE
 read_string:
 	PUSH {lr}   ; Store register lr on stack
-
 read_string_loop:
-	PUSH {r0}	;push addy
+	PUSH {r0}				;push addy
 	BL read_character
 NULL_set_num_string:
-	CMP r0, #0x0D	;check for cr char
+	CMP r0, #0x0D			;check for cr char
 	BNE STORE_num_string
-	MOV r0, #0x00	;if CR convert to NULL
+	MOV r0, #0x00			;if CR convert to NULL
 STORE_num_string:
-	MOV r1, r0		;store char from read_character in r1
-	POP {r0}		;
-	STRB r1, [r0]	;store
-	ADD r0, r0, #1	;increment addy
-	PUSH {r0}		;push addy to stack
-	MOV r0, r1		;store char for output_character
+	MOV r1, r0				;store char from read_character in r1
+	POP {r0}
+	STRB r1, [r0]			;store
+	ADD r0, r0, #1			;increment addy
+	PUSH {r0}				;push addy to stack
+	MOV r0, r1				;store char for output_character
 	BL output_character
 	CMP r0, #0x00
-	POP {r0}		;pop addy from stack
+	POP {r0}				;pop addy from stack
 	BNE read_string_loop
 
 end_read_string:
 	POP {lr}
-	mov pc, lr
+	MOV pc, lr
+	;############################################# read_string END #############################################
 
-
-;OUTPUT_STRING_SUBROUTINE
+;OUTPUT_STRING SUBROUTINE
 output_string:
-	PUSH {lr}   ; Store register lr on stack
+	PUSH {lr}   			; Store register lr on stack
 
 output_string_loop:
-	MOV r1, r0		;store addy in r1
-	PUSH {r0}		;push addy to stack
+	MOV r1, r0				;store addy in r1
+	PUSH {r0}				;push addy to stack
 LOAD_num_string:
-	LDRB r0, [r1]	;load char
-	CMP r0, #0x00	;check for NULL char
+	LDRB r0, [r1]			;load char
+	CMP r0, #0x00			;check for NULL char
 	BEQ end_output_string
 	BL output_character
-	POP {r0}		;pop addy from stack
-	ADD r0, r0, #1	;increment addy
+	POP {r0}				;pop addy from stack
+	ADD r0, r0, #1			;increment addy
 	B output_string_loop
 
 end_output_string:
 	POP {r0}
 	POP {lr}
-	mov pc, lr
+	MOV pc, lr
+	;############################################# output_string END #############################################
 
 
 ;READ_FROM_PUSH_BTNS_SUBROUTINE
 read_from_push_btns:
 	PUSH {lr} ; Store register lr on stack
 
-	;READ PORT D 
-	MOV r0, #0x7000				;move memory address of Port D base address to r0
-    MOVT r0, #0x4000
-loop:
+	;READ PORT D
+	LDR r0, GPIO_PORT_D		;move memory address of Port D base address to r0
+read_from_push_btns_loop:
 	LDR r1, [r0, #GPIODATA]		;load r0 with to offset of #GPIODATA to r1
 	MOV r2, r1					;copy r1 to r2
 	MOV r3, #0x0				;set r3 as 0x0
@@ -381,30 +348,55 @@ equal4:
 	B end						;branch to end
 notequal4:
 	ORR r3, #0x0				;does not do anything to the bit in r3
-	B loop						;branch to loop to keep checking the 4 button again
+	B read_from_push_btns_loop	;branch to read_from_push_btns_loop to keep checking the 4 button again
 end:
 	STR r3, [r0, #GPIODATA]		;store r3 to r0 with the offset GPIODATA
+	MOV r0, r3
 
 	POP {lr}
 	MOV pc, lr
+	;############################################# read_from_push_btns END #############################################
 
-
+;ILLUMINATE_LEDs SUBROUTINE
 illuminate_LEDs:
-	PUSH {lr} ; Store register lr on stack
-	 ; Your code is placed here
+	PUSH {lr} 					; Store register lr on stack
+	LDR r1, GPIO_PORT_B			;move memory address of port B
+	STRB r0, [r1, #GPIODATA]	;store to Data of B port
+
 	POP {lr}
 	MOV pc, lr
+	;############################################# illuminate_LEDs END #############################################
 
-
+;ILLUMINATE_RGB_LED SUBROUTINE
 illuminate_RGB_LED:
-	PUSH {lr} ; Store register lr on stack
-	 ; Your code is placed here
+	PUSH {lr}
+	;Red P1 Green P3 Blue P2
+	;system clock
+	LDR r1, SYSCTL
+	LDR r2, [r1, #0x608]
+	ORR r2, #0x20
+	STR r2, [r1, #0x608]
+
+	;set direction
+	LDR r1, GPIO_PORT_F
+	LDR r2, [r1, #GPIODIR]
+	ORR r2, #0xE
+	STR r2, [r1, #GPIODIR]
+
+	;set type (digital)
+	LDR r2, [r1, #GPIODEN]
+	ORR r2, #0xE
+	STR r2, [r1, #GPIODEN]
+
+	;led fireworks
+	STR r0, [r1, #GPIODATA]
+
 	POP {lr}
 	MOV pc, lr
+	;############################################# illuminate_RGB_LED END #############################################
 
-
-;READ_TIVA_PUSHBUTTON_SUBROUTINE
-read_tiva_pushbutton:
+;READ_TIVA_PUSH_BUTTON_SUBROUTINE
+read_tiva_push_button:
 	PUSH {lr} ; Store register lr on stack
 
 	;Read Port F Pin 4
@@ -417,12 +409,14 @@ read_tiva_pushbutton:
 	BNE pressed 				;if it 0 branch to zero
 notpressed:
 	MOV r0, #0					;When not pressed store 0 to r0
+	B ead_tiva_pushbutton_end
 pressed:
 	MOV r0, #1					;When pressed store 1 to r0
 
+ead_tiva_pushbutton_end:
 	POP {lr}
 	MOV pc, lr
-
+	;############################################# read_tiva_pushbutton END #############################################
 
 ;READ_KEYPAD_SUBROUTINE
 read_keypad:
@@ -534,5 +528,6 @@ end1:
 
 	POP {lr}
 	MOV pc, lr
+	;############################################# read_keypad END #############################################
 
 .end
