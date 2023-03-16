@@ -197,20 +197,20 @@ illuminate_LEDs_menu:
 	BL output_string
 
 illuminate_LEDs_handler:
-	BL read_character					;get and print + or - sign
+	BL read_character				;get and print + or - sign
 	CMP r0, #0x1B
-	BEQ lab4_non_init					;if ESC go to menu
+	BEQ lab4_non_init				;if ESC go to menu
 	BL output_character
-	CMP r0, #0x2B						;Check for + to add light
-	BNE illuminate_LEDs_handler_sub		;Or with data
-	BL read_character					;ex. L3 on will be DATA | 1000
-	BL output_character					;get and print light number
-	BL light_hex						;get binary bit mask
-	MOV r1, #0x5000						;move address for data port B
+	CMP r0, #0x2B					;Check for + to add light
+	BNE illuminate_LEDs_handler_sub			;Or with data
+	BL read_character				;ex. L3 on will be DATA | 1000
+	BL output_character				;get and print light number
+	BL light_hex					;get binary bit mask
+	MOV r1, #0x5000					;move address for data port B
 	MOVT r1, #0x4000
 	LDR r2, [r1, #0x3FC]				;get data from offset of data port B
-	ORR r0, r2							;bit mask to turn on and leave on other lights
-	STR r0, [r1, #0x3FC]				;store to data offset of data port B
+	ORR r0, r2					;bit mask to turn on and leave on other lights
+	BL illuminate_LEDs				;store to data offset of data port B
 	B illuminate_LEDs_handler
 
 illuminate_LEDs_handler_sub:
