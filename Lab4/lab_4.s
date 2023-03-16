@@ -214,16 +214,16 @@ illuminate_LEDs_handler:
 	B illuminate_LEDs_handler
 
 illuminate_LEDs_handler_sub:
-	CMP r0, #0x2D						;Check for - to sub light
+	CMP r0, #0x2D					;Check for - to sub light
 	BNE illuminate_LEDs_handler			;XOR with data excluding light to turn off
-	BL read_character					;ex. L3 off will be DATA ^ 0111
-	BL output_character					;get and print light number
-	BL light_hex						;get binary bit mask
-	MOV r1, #0x5000						;move address for data port B
+	BL read_character				;ex. L3 off will be DATA ^ 0111
+	BL output_character				;get and print light number
+	BL light_hex					;get binary bit mask
+	MOV r1, #0x5000					;move address for data port B
 	MOVT r1, #0x4000
 	LDR r2, [r1, #0x3FC]				;get data from offset of data port B
-	EOR r0, r2							;bit mask to turn off and leave on other lights
-	STR r0, [r1, #0x3FC]				;store to data offset of data port B
+	EOR r0, r2					;bit mask to turn off and leave on other lights
+	BL illuminate_LEDs				;store to data offset of data port B
 	B illuminate_LEDs_handler
 
 	;############################################# illuminate_LEDs_menu END #############################################
