@@ -119,8 +119,8 @@ uart_interrupt_init:
 	ORR r1, #0x10
 	STR r1, [r0, #0x038]
 	;Configure Processor to allow UART0 to Interrupt Processor (EN0)
-	MOV r0, #E000		;set address to 0xE000E000
-	MOVT r0, #E000
+	MOV r0, #0xE000		;set address to 0xE000E000
+	MOVT r0, #0xE000
 	LDR r1, [r0, #0x100]
 	ORR r1, r1, #0x20
 	STR r1, [r0, #0x100]
