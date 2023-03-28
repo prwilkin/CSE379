@@ -1,6 +1,8 @@
 	.text
 	.global keypad_init
 
+RCGCGPIO:		.equ	0x608		; Offset for GPIO Run Mode Clock Gating Control Register
+
 keypad_init:
 	PUSH {lr}
 
