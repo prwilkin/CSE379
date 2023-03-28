@@ -3,7 +3,7 @@
 	.global prompt
 	.global mydata
 
-prompt:	.string "Your prompt with instructions is place here", 0
+prompt:	.string "You pressed the button # times",0xA,0xD, "Your key presses:",0xA,0xD,0x00
 mydata:	.byte	0x20	; This is where you can store data.
 			; The .byte assembler directive stores a byte
 			; (initialized to 0x20) at the label mydata.
@@ -48,6 +48,8 @@ lab5:	; This is your main routine which is called from your C wrapper
 	PUSH {lr}   		; Store lr to stack
 	ldr r4, ptr_to_prompt
 	ldr r5, ptr_to_mydata
+	MOV r6, #0				;counter for button presses
+	LDR r7, ptr_to_mydata	;data for characters pressed
 
     bl uart_init
 	bl uart_interrupt_init
@@ -196,6 +198,8 @@ UART0_Handler:
 	ORR r1, #0x10			;MASK bit
 	STR r1, [r0, #0x044]	;reset interupt flag
 	BL simple_read_character
+	STRB r0, [r7]
+
 
 	; Your code for your UART handler goes here.
 	; Remember to preserver registers r4-r11 by pushing then popping
@@ -295,6 +299,10 @@ LOAD_num_string:
 	LDRB r0, [r1]			;load char
 	CMP r0, #0x00			;check for NULL char
 	BEQ end_output_string
+	CMP r0, #0x23			;check for #
+	BNE no_number
+	MOV r0, r4				;print number
+no_number:
 	BL output_character
 	POP {r0}				;pop addy from stack
 	ADD r0, r0, #1			;increment addy
@@ -305,5 +313,29 @@ end_output_string:
 	POP {lr}
 	MOV pc, lr
 	;############################################# output_string END #############################################
+
+post_interupt:
+	PUSH {lr}
+	BL clr_page
+	MOV r0, #0x00
+	STRB r0, [r7]
+	LDR r0, ptr_to_prompt
+	BL output_string
+	LDR r0, ptr_to_mydata
+	BL output_string
+
+	MOV pc, lr
+	;############################################# post_interupt END #############################################
+
+clr_page:
+	PUSH {lr}
+
+	MOV r0, #0xC
+	BL output_character
+
+	POP {lr}
+	MOV pc, lr
+	;############################################# clr_page END #############################################
+
 
 .end
