@@ -3,7 +3,7 @@
 	.global prompt
 	.global mydata
 
-prompt:	.string "You pressed the button:",0xA,0xD,0xFF,0xA,0xD,"Your key presses:",0xA,0xD,0x00
+prompt:	.string "Press [q] to quite at anytime",0xA,0xD,"Button presses:",0xA,0xD,0xFF,0xA,0xD,"Your key presses:",0xA,0xD,0x00
 mydata:	.byte	0x20	; This is where you can store data.
 			; The .byte assembler directive stores a byte
 			; (initialized to 0x20) at the label mydata.
@@ -216,6 +216,8 @@ UART0_Handler:
 	ORR r1, #0x10			;MASK bit
 	STR r1, [r0, #0x044]	;reset interupt flag
 	BL simple_read_character	;retrive character
+	CMP r0, #0x71
+	BEQ QUIT
 	STRB r0, [r7]				;store character in memory at mydata
 	ADD r7, #1					;increment mydata parser pointer by 1
 	BL post_interupt			;do prints screen functions
@@ -398,5 +400,6 @@ printer_end:
 	MOV pc, lr
 	;############################################# printer_bar END #############################################
 
+QUIT:
 
 .end
