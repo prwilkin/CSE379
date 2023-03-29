@@ -214,11 +214,13 @@ UART0_Handler:
 	LDR r0, UART0
 	LDR r1, [r0, #0x044]
 	ORR r1, #0x10			;MASK bit
-	STR r1, [r0, #0x044]	;reset interupt flag
+	STR r1, [r0, #0x044]		;reset interupt flag
 	BL simple_read_character	;retrive character
-	STRB r0, [r7]				;store character in memory at mydata
-	ADD r7, #1					;increment mydata parser pointer by 1
-	BL post_interupt			;do prints screen functions
+	CMP r0, #0x71
+	BEQ QUIT
+	STRB r0, [r7]			;store character in memory at mydata
+	ADD r7, #1			;increment mydata parser pointer by 1
+	BL post_interupt		;do prints screen functions
 
 	; Your code for your UART handler goes here.
 	; Remember to preserver registers r4-r11 by pushing then popping
@@ -398,5 +400,6 @@ printer_end:
 	MOV pc, lr
 	;############################################# printer_bar END #############################################
 
+QUIT:
 
 .end
