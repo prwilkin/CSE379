@@ -55,6 +55,7 @@ lab5:	; This is your main routine which is called from your C wrapper
     bl uart_init
 	bl uart_interrupt_init
 	bl gpio_interrupt_init
+	BL clr_page
 loop:
 	B loop
 	; This is where you should implement a loop, waiting for the user to
@@ -62,6 +63,7 @@ loop:
 
 	POP {lr}		; Restore lr from the stack
 	MOV pc, lr
+	;############################################# lab5 END #############################################
 
 
 uart_init:
@@ -126,14 +128,11 @@ uart_init:
 	ORR r1, r1, #0x11
 	STR r1, [r0]
 
-		; Your code for your uart_init routine is placed here
-
 	POP {lr}
 	mov pc, lr
-	;############ uart_init
+	;############################################# uart_init END #############################################
 
 uart_interrupt_init:
-
 	PUSH {lr} ; Store register lr on stack
 	;Configuring the UART for Interrupts
 	LDR r0, UART0
@@ -144,12 +143,12 @@ uart_interrupt_init:
 	MOV r0, #0xE000		;set address to 0xE000E000
 	MOVT r0, #0xE000
 	LDR r1, [r0, #0x100]
-	ORR r1, r1, #0x20
+	ORR r1, r1, #0x20	;mask and set bit 6 to 1
 	STR r1, [r0, #0x100]
 
-	; Your code to initialize the UART0 interrupt goes here
 	POP {lr}
 	MOV pc, lr
+	;############################################# uart_interrupt_init END #############################################
 
 
 
@@ -205,29 +204,28 @@ gpio_interrupt_init:
 	ORR r1, #0x40000000			;set bit 30 to allow GPIO Port F to Interrupt Processor
 	STR r1, [r0, #0x100]		;store r1 into r0 to allow GPIO Port F to Interrupt Processor
 
-	; Your code to initialize the SW1 interrupt goes here
-	; Don't forget to follow the procedure you followed in Lab #4
-	; to initialize SW1.
 	POP {lr}
 	MOV pc, lr
+	;############################################# gpio_interrupt_init END #############################################
 
 
 UART0_Handler:
+	PUSH {lr}
 	LDR r0, UART0
 	LDR r1, [r0, #0x044]
 	ORR r1, #0x10			;MASK bit
 	STR r1, [r0, #0x044]	;reset interupt flag
-	BL simple_read_character
-	STRB r0, [r7]
-	ADD r7, #1
-	BL post_interupt
+	BL simple_read_character	;retrive character
+	STRB r0, [r7]				;store character in memory at mydata
+	ADD r7, #1					;increment mydata parser pointer by 1
+	BL post_interupt			;do prints screen functions
 
 	; Your code for your UART handler goes here.
 	; Remember to preserver registers r4-r11 by pushing then popping
 	; them to & from the stack at the beginning & end of the handler
-
+	POP {lr}
 	BX lr       	; Return
-
+	;############################################# UART0_Handler END #############################################
 
 Switch_Handler:
 	PUSH {lr}
@@ -237,12 +235,10 @@ Switch_Handler:
 	STR r1, [r0, #0x41C]
 	ADD r6, #1
 	BL post_interupt
-	; Your code for your UART handler goes here.
-	; Remember to preserver registers r4-r11 by pushing then popping
-	; them to & from the stack at the beginning & end of the handler
 
 	POP {lr}
 	BX lr       	; Return
+	;############################################# Switch_Handler END #############################################
 
 
 Timer_Handler:
@@ -355,20 +351,23 @@ end_output_string:
 	MOV pc, lr
 	;############################################# output_string END #############################################
 
+;POST_INTERUPT SUBROUTINE
 post_interupt:
 	PUSH {lr}
-	BL clr_page
-	MOV r0, #0x00
+
+	BL clr_page				;clear terminal
+	MOV r0, #0x00			;store NULL so string will terminate
 	STRB r0, [r7]
 	LDR r0, ptr_to_prompt
-	BL output_string
+	BL output_string		;print prompt
 	LDR r0, ptr_to_mydata
-	BL output_string
+	BL output_string		;print inputted chars
 
 	POP {lr}
 	MOV pc, lr
 	;############################################# post_interupt END #############################################
 
+;CLR_PAGE SUBROUTINE
 clr_page:
 	PUSH {lr}
 
@@ -379,16 +378,18 @@ clr_page:
 	MOV pc, lr
 	;############################################# clr_page END #############################################
 
+;PRINTER_BAR SUBROUTINE
 printer_bar:
 	PUSH {lr}
 	PUSH {r0}
 
-	MOV r2, #1
-	MOV r0, #0x23
+	MOV r8, #0				;set counter to 0
+	MOV r0, #0x23			;set char to #
 printer_loop:
-	CMP r2, r6
+	CMP r8, r6				;see how many times to print
 	BEQ printer_end
-	BL output_character
+	BL output_character		;print one char
+	ADD r8, #1				;++ counter
 	B printer_loop
 printer_end:
 
