@@ -3,7 +3,7 @@
 	.global prompt
 	.global mydata
 
-prompt:	.string "You pressed the button:",0xA,0xD,0xFF,0xA,0xD,"Your key presses:",0xA,0xD,0x00
+prompt:	.string "Press [q] to quite at anytime",0xA,0xD,"Button presses:",0xA,0xD,0xFF,0xA,0xD,"Your key presses:",0xA,0xD,0x00
 mydata:	.byte	0x20	; This is where you can store data.
 			; The .byte assembler directive stores a byte
 			; (initialized to 0x20) at the label mydata.
