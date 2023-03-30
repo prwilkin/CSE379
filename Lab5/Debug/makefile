@@ -10,8 +10,9 @@ GEN_OPTS__FLAG :=
 GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
+"./lab_5.obj" \
 "./lab_5_library.obj" \
-"./main.obj" \
+"./lab_5_wrapper.obj" \
 "./tm4c123gh6pm_startup_ccs.obj" \
 "../tm4c123gh6pm.cmd" \
 $(GEN_CMDS__FLAG) \
@@ -143,9 +144,9 @@ Lab5.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)
-	-$(RM) "lab_5_library.obj" "main.obj" "tm4c123gh6pm_startup_ccs.obj" 
-	-$(RM) "main.d" "tm4c123gh6pm_startup_ccs.d" 
-	-$(RM) "lab_5_library.d" 
+	-$(RM) "lab_5.obj" "lab_5_library.obj" "lab_5_wrapper.obj" "tm4c123gh6pm_startup_ccs.obj" 
+	-$(RM) "lab_5_wrapper.d" "tm4c123gh6pm_startup_ccs.d" 
+	-$(RM) "lab_5.d" "lab_5_library.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 
