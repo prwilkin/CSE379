@@ -188,14 +188,14 @@ gpio_interrupt_init:
 	BIC r1, #0x10				;bitwise manipulation to clear bit 5 for Port F Pin 4
 	STR r1, [r0, #0x404]		;store r1 into r0 to change it edge sensitive (Falling or Rising Edge) for Port F Pin 4
 
-	;Setup the Interrupt for Edge Sensitive via the GPIO Interrupt Both Edges Register for Port F Pin 4
+	;Setup the Interrupt for Edge Sensitive via the GPIO Interrupt Single Edges Register for Port F Pin 4
 	LDR r1, [r0, #0x408]		;load content of r0 with offset of 0x408 to r1
 	BIC r1, #0x10				;bitwise manipulation to clear bit 5 for Port F Pin 4
 	STR r1, [r0, #0x408]		;store r1 into r0 to change it to allow GPIO Interrupt Event (GPIOEV) Register to Control Pin for Port F Pin 4
 
 	;Setting the Interrupt for Falling Edge Triggering via the GPIO Interrupt Event Register for Port F Pin 4
 	LDR r1, [r0, #0x40C]		;load content of r0 with offset of 0x40C to r1
-	BIC r1, #0x10				;clear bit 4 to enable the falling edge for Port F Pin 4
+	BIC r1, #0x10			;clear bit 4 to enable the falling edge for Port F Pin 4
 	STR r1, [r0, #0x40C]		;store r1 into r0 to enable the falling edge for Port F Pin 4
 
 	;Enabling the Interrupt for Port F Pin 4
