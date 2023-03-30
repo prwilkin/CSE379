@@ -140,15 +140,15 @@ uart_init:
 uart_interrupt_init:
 	PUSH {lr} ; Store register lr on stack
 	;Configuring the UART for Interrupts
-	LDR r0, UART0
+	LDR r0, UART0		;set address to 0x4000C000
 	LDR r1, [r0, #0x038]
-	ORR r1, #0x10
+	ORR r1, #0x10		;mask and set bit 4 to 1
 	STR r1, [r0, #0x038]
 	;Configure Processor to allow UART0 to Interrupt Processor (EN0)
 	MOV r0, #0xE000		;set address to 0xE000E000
 	MOVT r0, #0xE000
 	LDR r1, [r0, #0x100]
-	ORR r1, r1, #0x20	;mask and set bit 6 to 1
+	ORR r1, r1, #0x20	;mask and set bit 5 to 1
 	STR r1, [r0, #0x100]
 
 	POP {lr}
