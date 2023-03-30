@@ -3,7 +3,10 @@
 	.global prompt
 	.global mydata
 
-prompt:	.string "Press [q] to quite at anytime",0xA,0xD,"Button presses:",0xA,0xD,0xFF,0xA,0xD,"Your key presses:",0xA,0xD,0x00
+prompt:				.string "Press [q] to quit at anytime",0xA,0xD,"Button presses: ",0x00
+prompt2:			.string "",0xA,0xD,"Key presses: ",0x00
+buttonInt2String:	.string 0x00,0x00,0x00,0x00,0x00	;allocate space for a 4 didgit number and null teriminator
+keyInt2String:		.string 0x00,0x00,0x00,0x00,0x00	;allocate space for a 4 didgit number and null teriminator
 mydata:	.byte	0x20	; This is where you can store data.
 			; The .byte assembler directive stores a byte
 			; (initialized to 0x20) at the label mydata.
@@ -19,9 +22,8 @@ mydata:	.byte	0x20	; This is where you can store data.
 	.global Timer_Handler		; This is needed for Lab #6
 	.global simple_read_character
 	.global output_character	; This is from your Lab #4 Library
-	.global read_string		; This is from your Lab #4 Library
 	.global output_string		; This is from your Lab #4 Library
-	.global uart_init		; This is from your Lab #4 Library
+	.global uart_init			; This is from your Lab #4 Library
 	.global lab5
 
 **************************************************************************************************
@@ -40,6 +42,9 @@ U0FR: 			.equ 	0x18		; UART0 Flag Register
 **************************************************************************************************
 
 ptr_to_prompt:		.word prompt
+ptr_to_prompt2:		.word prompt2
+ptr_to_buttonInt2String:	.word buttonInt2String
+ptr_to_keyInt2String:		.word keyInt2String
 ptr_to_mydata:		.word mydata
 
 
@@ -50,7 +55,7 @@ lab5:	; This is your main routine which is called from your C wrapper
 	ldr r4, ptr_to_prompt
 	ldr r5, ptr_to_mydata
 	MOV r6, #0				;counter for button presses
-	LDR r7, ptr_to_mydata	;data for characters pressed
+	MOV r7, #0				;counter for key presses
 
     bl uart_init
 	bl uart_interrupt_init
@@ -209,34 +214,33 @@ gpio_interrupt_init:
 	;############################################# gpio_interrupt_init END #############################################
 
 
+;UART0_HANLDER SUBROUTINE
 UART0_Handler:
 	PUSH {lr}
 	LDR r0, UART0
 	LDR r1, [r0, #0x044]
-	ORR r1, #0x10			;MASK bit
+	ORR r1, #0x10				;MASK bit
 	STR r1, [r0, #0x044]		;reset interupt flag
 	BL simple_read_character	;retrive character
-	CMP r0, #0x71
+	CMP r0, #0x71				;if q quit
 	BEQ QUIT
-	STRB r0, [r7]			;store character in memory at mydata
-	ADD r7, #1			;increment mydata parser pointer by 1
-	BL post_interupt		;do prints screen functions
+	ADD r7, #1					;key press counter by 1
+	BL post_interupt			;do prints screen functions
 
-	; Your code for your UART handler goes here.
-	; Remember to preserver registers r4-r11 by pushing then popping
-	; them to & from the stack at the beginning & end of the handler
 	POP {lr}
 	BX lr       	; Return
 	;############################################# UART0_Handler END #############################################
 
+
+;SWITCH_HANDLER SUBROTUINE
 Switch_Handler:
 	PUSH {lr}
 	LDR r0, GPIO_PORT_F
 	LDR r1, [r0, #0x41C]
-	ORR r1, #0x10
-	STR r1, [r0, #0x41C]
-	ADD r6, #1
-	BL post_interupt
+	ORR r1, #0x10			;mask bit
+	STR r1, [r0, #0x41C]	;reset interupt flag
+	ADD r6, #1				;button counter by 1
+	BL post_interupt		;do prints screen functions
 
 	POP {lr}
 	BX lr       	; Return
@@ -265,6 +269,7 @@ simple_read_character:
 	MOV pc, lr
 	;############################################# simple_read_character END #############################################
 
+
 ;OUTPUT_CHARACTER_SUBROUTINE
 output_character:
 	PUSH {lr}   ; Store register lr on stack
@@ -280,6 +285,7 @@ output_character_loop:
 	POP {lr}
 	MOV pc, lr
 	;############################################# output_character END #############################################
+
 
 ;READ_CHARACTER_SUBROUTINE
 read_character:
@@ -298,33 +304,6 @@ end_read_character:
 	MOV pc, lr
 	;############################################# read_character END #############################################
 
-;READ_STRING_SUBROUTINE
-read_string:
-	PUSH {lr}   ; Store register lr on stack
-read_string_loop:
-	PUSH {r0}				;push addy
-	BL read_character
-NULL_set_num_string:
-	CMP r0, #0x0D			;check for cr char
-	BNE STORE_num_string
-	MOV r0, #0x00			;if CR convert to NULL
-STORE_num_string:
-	MOV r1, r0				;store char from read_character in r1
-	POP {r0}
-	STRB r1, [r0]			;store
-	ADD r0, r0, #1			;increment addy
-	PUSH {r0}				;push addy to stack
-	MOV r0, r1				;store char for output_character
-	BL output_character
-	CMP r0, #0x00
-	POP {r0}				;pop addy from stack
-	BNE read_string_loop
-
-end_read_string:
-	POP {lr}
-	MOV pc, lr
-	;############################################# read_string END #############################################
-
 
 ;OUTPUT_STRING SUBROUTINE
 output_string:
@@ -337,12 +316,7 @@ LOAD_num_string:
 	LDRB r0, [r1]			;load char
 	CMP r0, #0x00			;check for NULL char
 	BEQ end_output_string
-	CMP r0, #0xFF			;check for 0xFF, which is signal for bar graph
-	BEQ printer_bar
-	CMP r0, #0xFF			;check for 0xFF, which is signal for bar graph
-	BEQ output_string_skip
 	BL output_character
-output_string_skip:
 	POP {r0}				;pop addy from stack
 	ADD r0, r0, #1			;increment addy
 	B output_string_loop
@@ -358,12 +332,26 @@ post_interupt:
 	PUSH {lr}
 
 	BL clr_page				;clear terminal
-	MOV r0, #0x00			;store NULL so string will terminate
-	STRB r0, [r7]
 	LDR r0, ptr_to_prompt
 	BL output_string		;print prompt
-	LDR r0, ptr_to_mydata
-	BL output_string		;print inputted chars
+	LDR r1, ptr_to_buttonInt2String
+	MOV r0, r6				;pass button press counter
+	BL int2string			;convert counter to string
+	LDR r0, ptr_to_buttonInt2String
+	BL output_string		;print button int
+	BL new_line
+	MOV r1, r6				;pass button press counter
+	BL printer_bar			;print button bar
+	LDR r0, ptr_to_prompt2
+	BL output_string		;print key prompt
+	LDR r1, ptr_to_keyInt2String
+	MOV r0, r7				;pass key press counter
+	BL int2string			;convert counter to string
+	LDR r0, ptr_to_keyInt2String
+	BL output_string		;print key int
+	BL new_line
+	MOV r1, r7				;pass button press counter
+	BL printer_bar			;print key bar
 
 	POP {lr}
 	MOV pc, lr
@@ -380,6 +368,20 @@ clr_page:
 	MOV pc, lr
 	;############################################# clr_page END #############################################
 
+;NEW_LINE SUBROUTINE
+new_line:
+	PUSH {lr}
+
+	MOV r0, #0xA
+	BL output_character
+	MOV r0, #0xD
+	BL output_character
+
+	POP {lr}
+	MOV pc, lr
+	;############################################# new_line END #############################################
+
+
 ;PRINTER_BAR SUBROUTINE
 printer_bar:
 	PUSH {lr}
@@ -388,9 +390,11 @@ printer_bar:
 	MOV r8, #0				;set counter to 0
 	MOV r0, #0x23			;set char to #
 printer_loop:
-	CMP r8, r6				;see how many times to print
+	CMP r8, r1				;see how many times to print
 	BEQ printer_end
+	PUSH {r1}
 	BL output_character		;print one char
+	POP {r1}
 	ADD r8, #1				;++ counter
 	B printer_loop
 printer_end:
@@ -399,6 +403,86 @@ printer_end:
 	POP {lr}
 	MOV pc, lr
 	;############################################# printer_bar END #############################################
+
+
+;INT2STRING SUBROUTINE
+int2string:
+	PUSH {lr}   				; Store register lr on stack
+								;r0  = int
+								;r1  = addy
+								;r4 or higher must push pop
+								;## not passed in ##
+								;r2  = avg size (lmao)
+	PUSH {r4}					;r4  = didgit compare
+								;	 = avg maniuplated
+	PUSH {r5}					;r5  = temp var
+								;	 = digit to be stored
+	MOV r5, #1						;init
+	PUSH {r9}					;r9  = BASETEN var
+	MOV r9, #10						;init
+	PUSH {r10}					;r10 = 10
+	MOV r10, #10					;init
+
+integer_digit:		;get size of int if 1
+	MOV r4, #9		;load 9 for digit compare
+	MOV r2, #1		;load 1 to count digits
+	CMP r0, r4		;compare number and digit compare to determine if more then one digit
+	BGT COMPARE		;if more then one digit jump to compare
+	MOV r2, #1		;return 1 as digit count
+
+COMPARE:			;get size of average >1
+	ADD r2, r2, #1
+	MUL r4, r4, r10		;jump another digit ie 9 to 90
+	ADD r4, r4, #9		;push to highest for digit ie 99 for two digits
+	CMP r0, r4
+	BGT COMPARE			;if greater then check for another digit
+
+	MOV r4, r0		;r4 will be maniuptlated
+	CMP r2, #1		;if first digit then base being 10 works
+	BEQ MODULO
+
+BASETEN:			;this will calulate the size used for MOD ie. 10/100/1000
+	ADD r5, r5, #1
+	MUL r9, r9, r10
+	CMP r2, r5
+	BNE BASETEN
+
+loopint2string:
+
+MODULO:
+	SDIV r5, r4, r9		;input/base 10 mod
+	MUL r5, r5, r9		;qoutient*base 10 mod
+	SUB r5, r4, r5		;input - product = remainder
+	CMP r1, #1
+	BNE MODULOTWO
+	B STORE_int2string
+
+MODULOTWO:
+	SDIV r9, r9, r10
+	SDIV r5, r5, r9
+
+STORE_int2string:
+	ADD r5, r5, #48   	;convert int into string
+	STRB r5, [r1] 		;store the string into the memory address
+	CMP r2, #1 		  	;check if last didigt
+	BEQ end_int2string 	;exit if it null
+	ADD r1, r1, #1		;add 1 to r1 to move to the next address
+	SUB r2, r2, #1		;next didgit
+
+	B loopint2string    ;go back to loop
+end_int2string:
+	MOV r4, #0x00
+	STRB r4, [r1, #1]
+
+	POP {r10}	;reset stack and regs
+	POP {r9}	;FIFO
+	POP {r5}
+	POP {r4}
+
+	POP {lr}
+	mov pc, lr
+	;############################################# int2string END #############################################
+
 
 QUIT:
 
