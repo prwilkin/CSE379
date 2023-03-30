@@ -3,7 +3,10 @@
 	.global prompt
 	.global mydata
 
-prompt:	.string "Your prompt with instructions is place here", 0
+prompt:				.string "Press [q] to quit at anytime",0xA,0xD,"Button presses: ",0x00
+prompt2:			.string "",0xA,0xD,"Key presses: ",0x00
+buttonInt2String:	.string 0x00,0x00,0x00,0x00,0x00	;allocate space for a 4 didgit number and null teriminator
+keyInt2String:		.string 0x00,0x00,0x00,0x00,0x00	;allocate space for a 4 didgit number and null teriminator
 mydata:	.byte	0x20	; This is where you can store data.
 			; The .byte assembler directive stores a byte
 			; (initialized to 0x20) at the label mydata.
@@ -19,10 +22,10 @@ mydata:	.byte	0x20	; This is where you can store data.
 	.global Timer_Handler		; This is needed for Lab #6
 	.global simple_read_character
 	.global output_character	; This is from your Lab #4 Library
-	.global read_string		; This is from your Lab #4 Library
 	.global output_string		; This is from your Lab #4 Library
-	.global uart_init		; This is from your Lab #4 Library
-	.global lab5
+	.global uart_init			; This is from your Lab #4 Library
+	.global lab6
+	.global timer_interrupt_init
 
 **************************************************************************************************
 SYSCTL:			.word	0x400FE000	; Base address for System Control
@@ -30,68 +33,67 @@ GPIO_PORT_A:	.word	0x40004000	; Base address for GPIO Port A
 GPIO_PORT_B:	.word	0x40005000	; Base address for GPIO Port B
 GPIO_PORT_D:	.word	0x40007000	; Base address for GPIO Port D
 GPIO_PORT_F:	.word	0x40025000	; Base address for GPIO Port F
-EN0				.word   0xE000E000  ; Base address for Set Enable Register
+EN0:			.word   0xE000E000  ; Base address for Set Enable Register
 RCGCGPIO:		.equ	0x608		; Offset for GPIO Run Mode Clock Gating Control Register
 GPIODIR:		.equ	0x400		; Offset for GPIO Direction Register
 GPIODEN:		.equ	0x51C		; Offset for GPIO Digital Enable Register
 GPIODATA:		.equ	0x3FC		; Offset for GPIO Data
 UART0:			.word	0x4000C000	; Base address for UART0
 U0FR: 			.equ 	0x18		; UART0 Flag Register
+Timer0:			.word	0x40030000  ; Base Address of Timer0
 **************************************************************************************************
 
 ptr_to_prompt:		.word prompt
+ptr_to_prompt2:		.word prompt2
+ptr_to_buttonInt2String:	.word buttonInt2String
+ptr_to_keyInt2String:		.word keyInt2String
 ptr_to_mydata:		.word mydata
 
 
 
-
-lab5:	; This is your main routine which is called from your C wrapper
-	PUSH {lr}   		; Store lr to stack
-	ldr r4, ptr_to_prompt
-	ldr r5, ptr_to_mydata
-
-    bl uart_init
-	bl uart_interrupt_init
-	bl gpio_interrupt_init
-	MOV r2, #0
-loop:
-	MOV r2, r6
-	B loop
-	; This is where you should implement a loop, waiting for the user to
-	; enter a q, indicating they want to end the program.
-
-	POP {lr}		; Restore lr from the stack
-	MOV pc, lr
-
-
 uart_init:
-	PUSH {lr}
+	PUSH {lr}  ; Store register lr on stack
+
 	;Provide clock to UART0
-	LDR r0, SYSCTL			;set address to System Control
-	MOV r1, #0x1			;mark bit #0 as 1
-	STR r1,	[r0, #0x618]	;store @ address
+	MOV r0, #0xE618
+	MOVT r0, #0x400F	;set address to 0x400FE618
+	MOV r1, #0x1		;mark bit #0 as 1
+	STR r1,	[r0]		;store @ address
 	;Enable clock to PortA
-	MOV r1, #0x1			;mark bit #0 as 1
-	STR r1, [r0, #0x608]	;store @ address
+	MOV r0, #0xE608		;set address to 0x400FE608
+	MOVT r0, #0x400F
+	MOV r1, #0x1		;mark bit #0 as 1
+	STR r1, [r0]		;store @ address
 	;Disable UART0 Control
-	LDR r0, UART0			;set address to UART0
+	MOV r0, #0xC030
+	MOVT r0, #0x4000	;set address to 0x4000C030
 	MOV r1, #0x0
-	STR r1, [r0, #0x30]		;store @ address
+	STR r1, [r0]		;store @ address
 	;Set UART0_IBRD_R for 115,200 baud
+	MOV r0, #0xC024		;set address to 0x4000C024
+	MOVT r0, #0x4000
 	MOV r1, #0x8
-	STR r1, [r0, #0x24]		;store @ address
+	STR r1, [r0]		;store @ address
 	;Set UART0_FBRD_R for 115,200 baud
+	MOV r0, #0xC028		;set address to 0x4000C028
+	MOVT r0, #0x4000
 	MOV r1, #0x2C
-	STR r1, [r0, #0x28]
+	STR r1, [r0]
 	;Use System Clock
+	MOV r0, #0xCFC8		;set address to 0x4000CFC8
+	MOVT r0, #0x4000
 	MOV r1, #0x0
-	STR r1, [r0, #0xFC8]
+	STR r1, [r0]
 	;Use 8-bit word length, 1 stop bit, no parity
+	MOV r0, #0xC02C		;set address to 0x4000C02C
+	MOVT r0, #0x4000
 	MOV r1, #0x60
-	STR r1, [r0, #0x2C]
+	STR r1, [r0]
 	;Enable UART0 Control
+	MOV r0, #0xC030		;set address to 0x4000C030
+	MOVT r0, #0x4000
 	MOV r1, #0x301
-	STR r1, [r0, #0x30]
+	STR r1, [r0]
 	;Make PA0 and PA1 as Digital Ports
 	MOV r0, #0x451C		;set address to 0x4000451C
 	MOVT r0, #0x4000
@@ -112,26 +114,26 @@ uart_init:
 	STR r1, [r0]
 
 	POP {lr}
-	MOV pc, lr
+	mov pc, lr
+	;############################################# uart_init END #############################################
 
 uart_interrupt_init:
-
 	PUSH {lr} ; Store register lr on stack
 	;Configuring the UART for Interrupts
-	LDR r0, UART0
+	LDR r0, UART0		;set address to 0x4000C000
 	LDR r1, [r0, #0x038]
-	ORR r1, #0x10
+	ORR r1, #0x10		;mask and set bit 4 to 1
 	STR r1, [r0, #0x038]
 	;Configure Processor to allow UART0 to Interrupt Processor (EN0)
 	MOV r0, #0xE000		;set address to 0xE000E000
 	MOVT r0, #0xE000
 	LDR r1, [r0, #0x100]
-	ORR r1, r1, #0x20
+	ORR r1, r1, #0x20	;mask and set bit 5 to 1
 	STR r1, [r0, #0x100]
 
-	; Your code to initialize the UART0 interrupt goes here
 	POP {lr}
 	MOV pc, lr
+	;############################################# uart_interrupt_init END #############################################
 
 
 
@@ -166,14 +168,14 @@ gpio_interrupt_init:
 	BIC r1, #0x10				;bitwise manipulation to clear bit 5 for Port F Pin 4
 	STR r1, [r0, #0x404]		;store r1 into r0 to change it edge sensitive (Falling or Rising Edge) for Port F Pin 4
 
-	;Setup the Interrupt for Edge Sensitive via the GPIO Interrupt Both Edges Register for Port F Pin 4
+	;Setup the Interrupt for Edge Sensitive via the GPIO Interrupt Single Edges Register for Port F Pin 4
 	LDR r1, [r0, #0x408]		;load content of r0 with offset of 0x408 to r1
 	BIC r1, #0x10				;bitwise manipulation to clear bit 5 for Port F Pin 4
 	STR r1, [r0, #0x408]		;store r1 into r0 to change it to allow GPIO Interrupt Event (GPIOEV) Register to Control Pin for Port F Pin 4
 
 	;Setting the Interrupt for Falling Edge Triggering via the GPIO Interrupt Event Register for Port F Pin 4
 	LDR r1, [r0, #0x40C]		;load content of r0 with offset of 0x40C to r1
-	BIC r1, #0x10				;clear bit 4 to enable the falling edge for Port F Pin 4
+	BIC r1, #0x10			;clear bit 4 to enable the falling edge for Port F Pin 4
 	STR r1, [r0, #0x40C]		;store r1 into r0 to enable the falling edge for Port F Pin 4
 
 	;Enabling the Interrupt for Port F Pin 4
@@ -187,44 +189,104 @@ gpio_interrupt_init:
 	ORR r1, #0x40000000			;set bit 30 to allow GPIO Port F to Interrupt Processor
 	STR r1, [r0, #0x100]		;store r1 into r0 to allow GPIO Port F to Interrupt Processor
 
-	; Your code to initialize the SW1 interrupt goes here
-	; Don't forget to follow the procedure you followed in Lab #4
-	; to initialize SW1.
 	POP {lr}
 	MOV pc, lr
+	;############################################# gpio_interrupt_init END #############################################
 
 
+timer_interrupt_init:
+	PUSH {lr}
+	;Enable Clock for Timer (Tx) where x is timer number
+	LDR r0, Timer0
+	LDR r1, [r0, #0x604]
+	ORR r1, #0x1
+	STR r1, [r0, #0x604]
+
+	;Disable Timer
+	LDR r1, [r0, #0x00C]
+	BIC r1, #0x1
+	STR r1, [r0, #0x00C]
+
+	;Setting up Timer for 32-Bit Mode
+	LDR r1, [r0, #0x000]
+	BIC r1, #0x7			;Question about bit
+	STR r1, [r0, #0x000]
+
+	;Put Timer in Periodic Mode
+	LDR r1, [r0, #0x004]
+	ORR r1, #0x2			;Question about bit
+	STR r1, [r0, #0x004]
+
+	;Setup Interval Period
+	LDR r1, [r0, #0x028]
+	;write code later for interval period of the timer (have to do math)
+	STR r1, [r0, #0x028]
+
+	;Setup Interrupt Interval Period
+	LDR r1, [r0, #0x018]
+	ORR r1, #0x1
+	STR r1, [r0, #0x018]
+
+	;Configure Processor to Allow Timer to Interrupt Processor
+	LDR r0, EN0
+	LDR r1, [r0, #0x100]
+	ORR r1, #0x80000
+	STR r1, [r0, #0x100]
+
+	;Enable Timer
+	LDR r0, Timer0
+	LDR r1, [r0, #0x00C]
+	ORR r1, #0x1
+	STR r1, [r0, #0x00C]
+
+	POP {lr}
+	MOV pc, lr
+	;############################################# timer_interrupt_init END #############################################
+
+
+;UART0_HANLDER SUBROUTINE
 UART0_Handler:
+	PUSH {lr}
 	LDR r0, UART0
 	LDR r1, [r0, #0x044]
-	ORR r1, #0x10			;MASK bit
-	STR r1, [r0, #0x044]	;reset interupt flag
-	BL simple_read_character
+	ORR r1, #0x10				;MASK bit
+	STR r1, [r0, #0x044]		;reset interupt flag
+	BL simple_read_character	;retrive character
+	CMP r0, #0x71				;if q quit
+	BEQ QUIT
+	ADD r7, #1					;key press counter by 1
+	BL post_interupt			;do prints screen functions
 
-	; Your code for your UART handler goes here.
-	; Remember to preserver registers r4-r11 by pushing then popping
-	; them to & from the stack at the beginning & end of the handler
-
+	POP {lr}
 	BX lr       	; Return
+	;############################################# UART0_Handler END #############################################
 
 
+;SWITCH_HANDLER SUBROTUINE
 Switch_Handler:
 	PUSH {lr}
 	LDR r0, GPIO_PORT_F
 	LDR r1, [r0, #0x41C]
-	ORR r1, #0x10
-	STR r1, [r0, #0x41C]
-	ADD r6, #1
-	; Your code for your UART handler goes here.
-	; Remember to preserver registers r4-r11 by pushing then popping
-	; them to & from the stack at the beginning & end of the handler
+	ORR r1, #0x10			;mask bit
+	STR r1, [r0, #0x41C]	;reset interupt flag
+	ADD r6, #1				;button counter by 1
+	BL post_interupt		;do prints screen functions
 
 	POP {lr}
 	BX lr       	; Return
+	;############################################# Switch_Handler END #############################################
 
 
 Timer_Handler:
+	PUSH {lr}
+	;Clear the Interrupt
+	LDR r0, Timer0
+	LDR r1, [r0, #0x024]
+	ORR r1, #0x1
+	STR r1, [r0, #0x024]
 
+
+	
 	; Your code for your Timer handler goes here.  It is not needed
 	; for Lab #5, but will be used in Lab #6.  It is referenced here
 	; because the interrupt enabled startup code has declared Timer_Handler.
@@ -232,8 +294,9 @@ Timer_Handler:
 	; Lab #6.  Instead, you can use the same startup code as for Lab #5.
 	; Remember to preserver registers r4-r11 by pushing then popping
 	; them to & from the stack at the beginning & end of the handler.
-
+	POP {lr}
 	BX lr       	; Return
+	;############################################# Timer_Handler END #############################################
 
 
 simple_read_character:
@@ -244,6 +307,7 @@ simple_read_character:
 	POP {lr}
 	MOV pc, lr
 	;############################################# simple_read_character END #############################################
+
 
 ;OUTPUT_CHARACTER_SUBROUTINE
 output_character:
@@ -261,6 +325,7 @@ output_character_loop:
 	MOV pc, lr
 	;############################################# output_character END #############################################
 
+
 ;READ_CHARACTER_SUBROUTINE
 read_character:
 	PUSH {lr}   ; Store register lr on stack
@@ -277,33 +342,6 @@ end_read_character:
 	POP {lr}
 	MOV pc, lr
 	;############################################# read_character END #############################################
-
-;READ_STRING_SUBROUTINE
-read_string:
-	PUSH {lr}   ; Store register lr on stack
-read_string_loop:
-	PUSH {r0}				;push addy
-	BL read_character
-NULL_set_num_string:
-	CMP r0, #0x0D			;check for cr char
-	BNE STORE_num_string
-	MOV r0, #0x00			;if CR convert to NULL
-STORE_num_string:
-	MOV r1, r0				;store char from read_character in r1
-	POP {r0}
-	STRB r1, [r0]			;store
-	ADD r0, r0, #1			;increment addy
-	PUSH {r0}				;push addy to stack
-	MOV r0, r1				;store char for output_character
-	BL output_character
-	CMP r0, #0x00
-	POP {r0}				;pop addy from stack
-	BNE read_string_loop
-
-end_read_string:
-	POP {lr}
-	MOV pc, lr
-	;############################################# read_string END #############################################
 
 
 ;OUTPUT_STRING SUBROUTINE
@@ -327,5 +365,164 @@ end_output_string:
 	POP {lr}
 	MOV pc, lr
 	;############################################# output_string END #############################################
+
+;POST_INTERUPT SUBROUTINE
+post_interupt:
+	PUSH {lr}
+
+	BL clr_page				;clear terminal
+	LDR r0, ptr_to_prompt
+	BL output_string		;print prompt
+	LDR r1, ptr_to_buttonInt2String
+	MOV r0, r6				;pass button press counter
+	BL int2string			;convert counter to string
+	LDR r0, ptr_to_buttonInt2String
+	BL output_string		;print button int
+	BL new_line
+	MOV r1, r6				;pass button press counter
+	BL printer_bar			;print button bar
+	LDR r0, ptr_to_prompt2
+	BL output_string		;print key prompt
+	LDR r1, ptr_to_keyInt2String
+	MOV r0, r7				;pass key press counter
+	BL int2string			;convert counter to string
+	LDR r0, ptr_to_keyInt2String
+	BL output_string		;print key int
+	BL new_line
+	MOV r1, r7				;pass button press counter
+	BL printer_bar			;print key bar
+
+	POP {lr}
+	MOV pc, lr
+	;############################################# post_interupt END #############################################
+
+;CLR_PAGE SUBROUTINE
+clr_page:
+	PUSH {lr}
+
+	MOV r0, #0xC
+	BL output_character
+
+	POP {lr}
+	MOV pc, lr
+	;############################################# clr_page END #############################################
+
+;NEW_LINE SUBROUTINE
+new_line:
+	PUSH {lr}
+
+	MOV r0, #0xA
+	BL output_character
+	MOV r0, #0xD
+	BL output_character
+
+	POP {lr}
+	MOV pc, lr
+	;############################################# new_line END #############################################
+
+
+;PRINTER_BAR SUBROUTINE
+printer_bar:
+	PUSH {lr}
+	PUSH {r0}
+
+	MOV r8, #0				;set counter to 0
+	MOV r0, #0x23			;set char to #
+printer_loop:
+	CMP r8, r1				;see how many times to print
+	BEQ printer_end
+	PUSH {r1}
+	BL output_character		;print one char
+	POP {r1}
+	ADD r8, #1				;++ counter
+	B printer_loop
+printer_end:
+
+	POP {r0}
+	POP {lr}
+	MOV pc, lr
+	;############################################# printer_bar END #############################################
+
+
+;INT2STRING SUBROUTINE
+int2string:
+	PUSH {lr}   				; Store register lr on stack
+								;r0  = int
+								;r1  = addy
+								;r4 or higher must push pop
+								;## not passed in ##
+								;r2  = avg size (lmao)
+	PUSH {r4}					;r4  = didgit compare
+								;	 = avg maniuplated
+	PUSH {r5}					;r5  = temp var
+								;	 = digit to be stored
+	MOV r5, #1						;init
+	PUSH {r9}					;r9  = BASETEN var
+	MOV r9, #10						;init
+	PUSH {r10}					;r10 = 10
+	MOV r10, #10					;init
+
+integer_digit:		;get size of int if 1
+	MOV r4, #9		;load 9 for digit compare
+	MOV r2, #1		;load 1 to count digits
+	CMP r0, r4		;compare number and digit compare to determine if more then one digit
+	BGT COMPARE		;if more then one digit jump to compare
+	MOV r2, #1		;return 1 as digit count
+
+COMPARE:			;get size of average >1
+	ADD r2, r2, #1
+	MUL r4, r4, r10		;jump another digit ie 9 to 90
+	ADD r4, r4, #9		;push to highest for digit ie 99 for two digits
+	CMP r0, r4
+	BGT COMPARE			;if greater then check for another digit
+
+	MOV r4, r0		;r4 will be maniuptlated
+	CMP r2, #1		;if first digit then base being 10 works
+	BEQ MODULO
+
+BASETEN:			;this will calulate the size used for MOD ie. 10/100/1000
+	ADD r5, r5, #1
+	MUL r9, r9, r10
+	CMP r2, r5
+	BNE BASETEN
+
+loopint2string:
+
+MODULO:
+	SDIV r5, r4, r9		;input/base 10 mod
+	MUL r5, r5, r9		;qoutient*base 10 mod
+	SUB r5, r4, r5		;input - product = remainder
+	CMP r1, #1
+	BNE MODULOTWO
+	B STORE_int2string
+
+MODULOTWO:
+	SDIV r9, r9, r10
+	SDIV r5, r5, r9
+
+STORE_int2string:
+	ADD r5, r5, #48   	;convert int into string
+	STRB r5, [r1] 		;store the string into the memory address
+	CMP r2, #1 		  	;check if last didigt
+	BEQ end_int2string 	;exit if it null
+	ADD r1, r1, #1		;add 1 to r1 to move to the next address
+	SUB r2, r2, #1		;next didgit
+
+	B loopint2string    ;go back to loop
+end_int2string:
+	MOV r4, #0x00
+	STRB r4, [r1, #1]
+
+	POP {r10}	;reset stack and regs
+	POP {r9}	;FIFO
+	POP {r5}
+	POP {r4}
+
+	POP {lr}
+	mov pc, lr
+	;############################################# int2string END #############################################
+
+
+QUIT:
 
 .end
