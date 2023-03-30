@@ -52,8 +52,6 @@ ptr_to_mydata:		.word mydata
 
 lab5:	; This is your main routine which is called from your C wrapper
 	PUSH {lr}   		; Store lr to stack
-	ldr r4, ptr_to_prompt
-	ldr r5, ptr_to_mydata
 	MOV r6, #0				;counter for button presses
 	MOV r7, #0				;counter for key presses
 
@@ -140,15 +138,15 @@ uart_init:
 uart_interrupt_init:
 	PUSH {lr} ; Store register lr on stack
 	;Configuring the UART for Interrupts
-	LDR r0, UART0
+	LDR r0, UART0		;set address to 0x4000C000
 	LDR r1, [r0, #0x038]
-	ORR r1, #0x10
+	ORR r1, #0x10		;mask and set bit 4 to 1
 	STR r1, [r0, #0x038]
 	;Configure Processor to allow UART0 to Interrupt Processor (EN0)
 	MOV r0, #0xE000		;set address to 0xE000E000
 	MOVT r0, #0xE000
 	LDR r1, [r0, #0x100]
-	ORR r1, r1, #0x20	;mask and set bit 6 to 1
+	ORR r1, r1, #0x20	;mask and set bit 5 to 1
 	STR r1, [r0, #0x100]
 
 	POP {lr}
@@ -188,14 +186,14 @@ gpio_interrupt_init:
 	BIC r1, #0x10				;bitwise manipulation to clear bit 5 for Port F Pin 4
 	STR r1, [r0, #0x404]		;store r1 into r0 to change it edge sensitive (Falling or Rising Edge) for Port F Pin 4
 
-	;Setup the Interrupt for Edge Sensitive via the GPIO Interrupt Both Edges Register for Port F Pin 4
+	;Setup the Interrupt for Edge Sensitive via the GPIO Interrupt Single Edges Register for Port F Pin 4
 	LDR r1, [r0, #0x408]		;load content of r0 with offset of 0x408 to r1
 	BIC r1, #0x10				;bitwise manipulation to clear bit 5 for Port F Pin 4
 	STR r1, [r0, #0x408]		;store r1 into r0 to change it to allow GPIO Interrupt Event (GPIOEV) Register to Control Pin for Port F Pin 4
 
 	;Setting the Interrupt for Falling Edge Triggering via the GPIO Interrupt Event Register for Port F Pin 4
 	LDR r1, [r0, #0x40C]		;load content of r0 with offset of 0x40C to r1
-	BIC r1, #0x10				;clear bit 4 to enable the falling edge for Port F Pin 4
+	BIC r1, #0x10			;clear bit 4 to enable the falling edge for Port F Pin 4
 	STR r1, [r0, #0x40C]		;store r1 into r0 to enable the falling edge for Port F Pin 4
 
 	;Enabling the Interrupt for Port F Pin 4
@@ -285,24 +283,6 @@ output_character_loop:
 	POP {lr}
 	MOV pc, lr
 	;############################################# output_character END #############################################
-
-
-;READ_CHARACTER_SUBROUTINE
-read_character:
-	PUSH {lr}   ; Store register lr on stack
-	LDR r2, UART0
-
-read_character_loop:
-	LDRB r1, [r2, #U0FR]	;get RxFE bit
-	AND r1, #0x10			;isolate OxFE bit
-	CMP r1, #0x10			;if bit 1 branch
-	BEQ read_character_loop
-	LDRB r0, [r2]			;load data
-
-end_read_character:
-	POP {lr}
-	MOV pc, lr
-	;############################################# read_character END #############################################
 
 
 ;OUTPUT_STRING SUBROUTINE
