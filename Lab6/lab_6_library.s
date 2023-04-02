@@ -62,6 +62,7 @@ moves:		.string "Total Moves: ",0x00	;					it is to a position where it isnt, an
 	.global uart_init
 	.global uart_interrupt_init
 	.global gpio_interrupt_init
+	.global timer_interrupt_init
 	.global UART0_Handler
 	.global Switch_Handler
 	.global Timer_Handler
@@ -91,7 +92,6 @@ GPIODEN:		.equ	0x51C		; Offset for GPIO Digital Enable Register
 GPIODATA:		.equ	0x3FC		; Offset for GPIO Data
 UART0:			.word	0x4000C000	; Base address for UART0
 U0FR: 			.equ 	0x18		; UART0 Flag Register
-Timer0:			.word	0x40030000  ; Base Address of Timer0
 **************************************************************************************************
 ptr_to_topNbottom:		.word topNbottom
 ptr_to_row1:			.word row1
@@ -254,7 +254,7 @@ gpio_interrupt_init:
 	STR r1, [r0, #0x410]		;store r1 into r0 to enable the interrupt for Port F Pin 4
 
 	;Configure Processor to Allow GPIO Port F to Interrupt Processor
-	LDR r0, EN0
+	LDR r0, EN0					;move memory address of EN0 base address to r0
 	LDR r1, [r0, #0x100]		;load content of r0 with offset with 0x100 to r1
 	ORR r1, #0x40000000			;set bit 30 to allow GPIO Port F to Interrupt Processor
 	STR r1, [r0, #0x100]		;store r1 into r0 to allow GPIO Port F to Interrupt Processor
@@ -266,47 +266,51 @@ gpio_interrupt_init:
 timer_interrupt_init:
 	PUSH {lr}
 	;Enable Clock for Timer (Tx) where x is timer number
-	LDR r0, Timer0
-	LDR r1, [r0, #0x604]
-	ORR r1, #0x1
-	STR r1, [r0, #0x604]
+	MOV r0, #0xE000				;move memory address of Clock base address to r0
+	MOVT r0, #0x400F
+	LDR r1, [r0, #0x604]		;load content of r0 with offset with 0x604 to r1
+	ORR r1, #0x1				;set bit 0 to allow enable Clock for Timer0
+	STR r1, [r0, #0x604]		;store r1 into r0 to allow Clock to be enable for Timer0
 
 	;Disable Timer
-	LDR r1, [r0, #0x00C]
-	BIC r1, #0x1
-	STR r1, [r0, #0x00C]
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
+	BIC r1, #0x1				;clear bit 0 to disable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer0
 
 	;Setting up Timer for 32-Bit Mode
-	LDR r1, [r0, #0x000]
-	BIC r1, #0x7			;Question about bit
-	STR r1, [r0, #0x000]
+	LDR r1, [r0, #0x000]		;load content of r0 with offset with 0x000 to r1
+	BIC r1, #0x000				;Clear bit 0,1,2 to configure the Timer as a single 32-bit timer
+	STR r1, [r0, #0x000]		;store r1 into r0 to set Timer0 as a single 32-bit timer
 
 	;Put Timer in Periodic Mode
-	LDR r1, [r0, #0x004]
-	ORR r1, #0x2			;Question about bit
-	STR r1, [r0, #0x004]
+	LDR r1, [r0, #0x004]		;load content of r0 with offset with 0x004 to r1
+	ORR r1, #0x2				;Write 2 to TAMR to change the mode of Timer0 to Periodic Mode
+	STR r1, [r0, #0x004]		;store r1 into r0 to change Timer as Periodic Mode
 
 	;Setup Interval Period
-	LDR r1, [r0, #0x028]
-	;write code later for interval period of the timer (have to do math)
-	STR r1, [r0, #0x028]
+	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
+				;set r1 as 16000000 to make the Timer interrupt to start at 1 second
+	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
-	;Setup Interrupt Interval Period
-	LDR r1, [r0, #0x018]
-	ORR r1, #0x1
-	STR r1, [r0, #0x018]
+	;Setup Timer to Interrupt Processor
+	LDR r1, [r0, #0x018]		;load content of r0 with offset with 0x018 to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer to Interrupt Processor
+	STR r1, [r0, #0x018]		;store r1 into r0 to enable Timer to Interrupt Processor
 
 	;Configure Processor to Allow Timer to Interrupt Processor
-	LDR r0, EN0
-	LDR r1, [r0, #0x100]
-	ORR r1, #0x80000
-	STR r1, [r0, #0x100]
+	LDR r0, EN0					;move memory address of EN0 base address to r0
+	LDR r1, [r0, #0x100]		;load content of r0 with offset of 0x100 to r1
+	ORR r1, #0x80000			;set bit 19 to Timer0 to Interrupt Processor
+	STR r1, [r0, #0x100]		;store r1 into r0 to allow Timer0 to Interrupt Processor
 
 	;Enable Timer
-	LDR r0, Timer0
-	LDR r1, [r0, #0x00C]
-	ORR r1, #0x1
-	STR r1, [r0, #0x00C]
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
 
 	POP {lr}
 	MOV pc, lr
@@ -354,8 +358,8 @@ Switch_Handler:
 	PUSH {lr}
 	LDR r0, GPIO_PORT_F
 	LDR r1, [r0, #0x41C]
-	ORR r1, #0x10			;mask bit
-	STR r1, [r0, #0x41C]	;reset interupt flag
+	ORR r1, #0x10				;mask bit
+	STR r1, [r0, #0x41C]		;reset interupt flag
 
 
 	POP {lr}
@@ -365,9 +369,12 @@ Switch_Handler:
 
 Timer_Handler:
 	PUSH {lr}
-
-
-
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
+	ORR r1, #0x1				;set bit 0 to clear Timer0 interrupt so Timer0 interrupt can be interrupted again
+	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer0 interrupt can be itnerrupted again
+	ADD r9, r9, #1
 	POP {lr}
 	BX lr       	; Return
 	;############################################# Timer_Handler END #############################################
