@@ -35,6 +35,7 @@
 	.global uart_init
 	.global uart_interrupt_init
 	.global gpio_interrupt_init
+	.global timer_interrupt_init
 	.global UART0_Handler
 	.global Switch_Handler
 	.global Timer_Handler
@@ -60,7 +61,7 @@ lab6:
 	BL uart_init
 	BL uart_interrupt_init
 	BL gpio_interrupt_init
-	;BL
+	BL timer_interrupt_init
 	BL clr_page
 loop:
 	B loop
