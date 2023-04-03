@@ -291,7 +291,8 @@ timer_interrupt_init:
 
 	;Setup Interval Period
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-				;set r1 as 16000000 to make the Timer interrupt to start at 1 second
+	MOV r1, #0x2400				;set r1 as 16000000 to make the Timer interrupt to start at 1 second
+	MOVT r1, #0x00F4
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Setup Timer to Interrupt Processor
@@ -356,12 +357,20 @@ UART0_Handler_end:
 ;SWITCH_HANDLER SUBROTUINE
 Switch_Handler:
 	PUSH {lr}
+	PUSH {r5}
+	MOV r5, #2
 	LDR r0, GPIO_PORT_F
 	LDR r1, [r0, #0x41C]
 	ORR r1, #0x10				;mask bit
 	STR r1, [r0, #0x41C]		;reset interupt flag
 
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
+	UDIV r1, r1, r5
+	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
+	POP {r5}
 	POP {lr}
 	BX lr       	; Return
 	;############################################# Switch_Handler END #############################################
