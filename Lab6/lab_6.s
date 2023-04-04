@@ -35,6 +35,7 @@
 	.global uart_init
 	.global uart_interrupt_init
 	.global gpio_interrupt_init
+	.global timer_interrupt_init
 	.global UART0_Handler
 	.global Switch_Handler
 	.global Timer_Handler
@@ -60,7 +61,7 @@ lab6:
 	BL uart_init
 	BL uart_interrupt_init
 	BL gpio_interrupt_init
-	;BL
+	BL timer_interrupt_init
 	BL clr_page
 loop:
 	B loop
@@ -71,13 +72,13 @@ loop:
 game:
 	PUSH {lr}
 
-	BL checker
-	BL mover
-	BL printer
-	LDR r0, ptr_to_cordinatesNext
-	LDR r0, [r0]
+	BL checker		;now
+	BL mover		;now to get next
+	BL printer		;next
+	LDR r1, ptr_to_cordinatesNext
+	LDRH r0, [r1]
 	LDR r1, ptr_to_cordinatesNow
-	STR r0, [r1]
+	STRH r0, [r1]
 
 	POP {lr}
 	MOV pc, lr
