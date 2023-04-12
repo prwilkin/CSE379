@@ -1,0 +1,197 @@
+******************************************************************************
+                  TI ARM Linker PC v20.2.7                     
+******************************************************************************
+>> Linked Wed Apr 12 01:48:17 2023
+
+OUTPUT FILE NAME:   <Game.out>
+ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 00000d41
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  FLASH                 00000000   00040000  00000db2  0003f24e  R  X
+  SRAM                  20000000   00008000  00000200  00007e00  RW X
+
+
+SEGMENT ALLOCATION MAP
+
+run origin  load origin   length   init length attrs members
+----------  ----------- ---------- ----------- ----- -------
+00000000    00000000    00000db2   00000db2    r-x
+  00000000    00000000    0000026c   0000026c    r-- .intvecs
+  0000026c    0000026c    00000b46   00000b46    r-x .text
+20000000    20000000    00000200   00000000    rw-
+  20000000    20000000    00000200   00000000    rw- .stack
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.intvecs   0    00000000    0000026c     
+                  00000000    0000026c     tm4c123gh6pm_startup_ccs.obj (.intvecs)
+
+.text      0    0000026c    00000b46     
+                  0000026c    00000656     game_printer_and_sub.obj (.text)
+                  000008c2    00000002     --HOLE-- [fill = 0]
+                  000008c4    0000027c     game_init_library.obj (.text)
+                  00000b40    00000102     game_handler_library.obj (.text)
+                  00000c42    00000002     --HOLE-- [fill = 0]
+                  00000c44    000000fc     game_physics_engine.obj (.text)
+                  00000d40    0000002c     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.text:_c_int00_noinit_noargs:_c_int00_noinit_noargs)
+                  00000d6c    00000028     game.obj (.text)
+                  00000d94    0000000c     tm4c123gh6pm_startup_ccs.obj (.text)
+                  00000da0    0000000a     main.obj (.text)
+                  00000daa    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
+                  00000dae    00000004                                   : exit.c.obj (.text:abort:abort)
+
+.cinit     0    00000000    00000000     UNINITIALIZED
+
+.init_array 
+*          0    00000000    00000000     UNINITIALIZED
+
+.stack     0    20000000    00000200     UNINITIALIZED
+                  20000000    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.stack)
+                  20000004    000001fc     --HOLE--
+
+__llvm_prf_cnts 
+*          0    20000000    00000000     UNINITIALIZED
+
+MODULE SUMMARY
+
+       Module                         code   ro data   rw data
+       ------                         ----   -------   -------
+    .\
+       game_printer_and_sub.obj       1622   0         0      
+       game_init_library.obj          636    0         0      
+       tm4c123gh6pm_startup_ccs.obj   12     620       0      
+       game_handler_library.obj       258    0         0      
+       game_physics_engine.obj        252    0         0      
+       game.obj                       40     0         0      
+       main.obj                       10     0         0      
+    +--+------------------------------+------+---------+---------+
+       Total:                         2830   620       0      
+                                                              
+    D:\Program Files\ccs\tools\compiler\ti-cgt-arm_20.2.7.LTS\lib\rtsv7M4_T_le_v4SPD16_eabi.lib
+       boot_cortex_m.c.obj            44     0         0      
+       exit.c.obj                     4      0         0      
+       pre_init.c.obj                 4      0         0      
+    +--+------------------------------+------+---------+---------+
+       Total:                         52     0         0      
+                                                              
+       Stack:                         0      0         512    
+    +--+------------------------------+------+---------+---------+
+       Grand Total:                   2882   620       512    
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address   name                   
+-------   ----                   
+00000daf  C$$EXIT                
+00000c15  DisableT               
+00000c2d  EnableT                
+00000a69  Four_BUTTON_init       
+00000a35  Four_LED_init          
+00000a9d  RGB_LIGHT_init         
+00000d95  ResetISR               
+00000ba1  Switch_Handler         
+00000bef  Timer_Handler          
+00000b61  UART0_Handler          
+20000200  __STACK_END            
+00000200  __STACK_SIZE           
+20000200  __STACK_TOP            
+ffffffff  __TI_pprof_out_hndl    
+ffffffff  __TI_prof_data_size    
+ffffffff  __TI_prof_data_start   
+00000000  __TI_static_base__     
+ffffffff  __binit__              
+ffffffff  __c_args__             
+UNDEFED   __mpu_init             
+20000000  __stack                
+20000000  __start___llvm_prf_cnts
+20000000  __stop___llvm_prf_cnts 
+00000d41  _c_int00_noinit_noargs 
+00000dab  _system_pre_init       
+00000daf  abort                  
+ffffffff  binit                  
+00000caf  checker                
+00000809  clr_page               
+00000d1d  decode                 
+00000d2f  encode                 
+00000000  g_pfnVectors           
+000009b1  gpio_interrupt_init    
+00000831  int2string             
+00000da1  main                   
+00000819  new_line               
+000007d1  output_character       
+000007e9  output_string          
+00000ca7  paddle                 
+00000c4c  paddleX                
+00000c69  phsyics                
+000006e5  printer                
+00000c07  simple_read_character  
+00000d6d  start                  
+000006eb  start_printer          
+00000ad1  timer_interrupt_init   
+000008e1  uart_init              
+00000989  uart_interrupt_init    
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address   name                   
+-------   ----                   
+00000000  __TI_static_base__     
+00000000  g_pfnVectors           
+00000200  __STACK_SIZE           
+000006e5  printer                
+000006eb  start_printer          
+000007d1  output_character       
+000007e9  output_string          
+00000809  clr_page               
+00000819  new_line               
+00000831  int2string             
+000008e1  uart_init              
+00000989  uart_interrupt_init    
+000009b1  gpio_interrupt_init    
+00000a35  Four_LED_init          
+00000a69  Four_BUTTON_init       
+00000a9d  RGB_LIGHT_init         
+00000ad1  timer_interrupt_init   
+00000b61  UART0_Handler          
+00000ba1  Switch_Handler         
+00000bef  Timer_Handler          
+00000c07  simple_read_character  
+00000c15  DisableT               
+00000c2d  EnableT                
+00000c4c  paddleX                
+00000c69  phsyics                
+00000ca7  paddle                 
+00000caf  checker                
+00000d1d  decode                 
+00000d2f  encode                 
+00000d41  _c_int00_noinit_noargs 
+00000d6d  start                  
+00000d95  ResetISR               
+00000da1  main                   
+00000dab  _system_pre_init       
+00000daf  C$$EXIT                
+00000daf  abort                  
+20000000  __stack                
+20000000  __start___llvm_prf_cnts
+20000000  __stop___llvm_prf_cnts 
+20000200  __STACK_END            
+20000200  __STACK_TOP            
+ffffffff  __TI_pprof_out_hndl    
+ffffffff  __TI_prof_data_size    
+ffffffff  __TI_prof_data_start   
+ffffffff  __binit__              
+ffffffff  __c_args__             
+ffffffff  binit                  
+UNDEFED   __mpu_init             
+
+[48 symbols]

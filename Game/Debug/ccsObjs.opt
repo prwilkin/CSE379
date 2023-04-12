@@ -1,0 +1,9 @@
+"./game.obj"
+"./game_handler_library.obj"
+"./game_init_library.obj"
+"./game_physics_engine.obj"
+"./game_printer_and_sub.obj"
+"./main.obj"
+"./tm4c123gh6pm_startup_ccs.obj"
+"../tm4c123gh6pm.cmd"
+-llibc.a
