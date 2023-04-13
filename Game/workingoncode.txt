@@ -406,19 +406,6 @@ Four_LED_init:
 	MOV pc, lr
 	;############################################# 4_LED_init #############################################
 
-Exponent:
-	PUSH {lr}
-	PUSH {r7,r8}
-	MOV r4, #0xF
-	MOV r7, #2
-	MOV r8, #3
-	MUL r1, r8, r7
-	SUB r4, r4, r1
-	SUB r8, r8, #1
-	POP {r7,r8}
-	POP {lr}
-	MOV pc, lr
-
 ;SWITCH_HANDLER SUBROTUINE
 Switch_Handler:
 	PUSH {lr}
@@ -446,7 +433,6 @@ Disable:
 	LDR r1, [r0, #GPIODATA]
 	ORR r1, #0x4
 	STR r1, [r0, #GPIODATA]
-	BL Exponent
 	BL Four_LED_subroutine
 	B endswitch
 
@@ -473,13 +459,63 @@ endswitch:
 
 Four_LED_subroutine:
 	PUSH {lr}
-
+	CMP r6, #0xF
+	BEQ setlight1
+	BNE Threelives
+setlight1:
 	LDR r0, GPIO_PORT_B
 	LDR r1, [r0, #GPIODATA]
 	BIC r1, #0x00
-	ORR r1, r4
+	ORR r1, r6
 	STR r1, [r0, #GPIODATA]
-
+	MOV r6, #0x7
+	B end4light
+Threelives:
+	CMP r6, #0x7
+	BEQ setlight2
+	BNE Twolives
+setlight2:
+	LDR r0, GPIO_PORT_B
+	LDR r1, [r0, #GPIODATA]
+	AND r1, #0x00
+	ORR r1, r6
+	STR r1, [r0, #GPIODATA]
+	MOV r6, #0x3
+	B end4light
+Twolives:
+	CMP r6, #0x3
+	BEQ setlight3
+	BNE Onelives
+setlight3:
+	LDR r0, GPIO_PORT_B
+	LDR r1, [r0, #GPIODATA]
+	AND r1, #0x00
+	ORR r1, r6
+	STR r1, [r0, #GPIODATA]
+	MOV r6, #0x1
+	B end4light
+Onelives:
+	CMP r6, #0x1
+	BEQ setlight4
+	BNE Zerolives
+setlight4:
+	LDR r0, GPIO_PORT_B
+	LDR r1, [r0, #GPIODATA]
+	AND r1, #0x00
+	ORR r1, r6
+	STR r1, [r0, #GPIODATA]
+	MOV r6, #0x0
+	B end4light
+Zerolives:
+	CMP r6, #0x0
+	BEQ setlight5
+setlight5:
+	LDR r0, GPIO_PORT_B
+	LDR r1, [r0, #GPIODATA]
+	AND r1, #0x00
+	ORR r1, r6
+	STR r1, [r0, #GPIODATA]
+end4light:
 	POP {lr}
 	MOV pc, lr
 	;############################################# Four_LED_subroutine END #############################################
