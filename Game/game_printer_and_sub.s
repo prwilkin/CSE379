@@ -11,14 +11,13 @@
 	.global blocksrow4		;game_physics_engine
 	.global blocksrow5		;game_physics_engine
 **************************************************************************************************
-
-ballcolor:		.byte 	0x00
-scorestr:		.string 0x30, 0x00, 0x00, 0x00, 0x00, 0x00
+startscore:		.string "      Score: 0",0x00
+				.align
 scorePrompt: 	.string "      Score: ",0x00
+scorestr:		.string 0x30, 0x00, 0x00, 0x00, 0x00, 0x00
 topNbottom: 	.string "+---------------------+",0x00
 center:			.string "|                     |",0x00
 paddle:			.string "|        =====        |",0x00
-startscore:		.string "      Score: 0",0x00
 startrow5:		.string "|     Start Game:     |",0x00
 startrow6:		.string "|    Press switches   |",0x00
 startrow7:		.string "|   for block levels  |",0x00
@@ -40,6 +39,7 @@ row13:	.half 0x000D, 0x010D, 0x020D, 0x030D, 0x040D, 0x050D, 0x060D, 0x070D, 0x0
 row14:	.half 0x000E, 0x010E, 0x020E, 0x030E, 0x040E, 0x050E, 0x060E, 0x070E, 0x080E, 0x090E, 0x0A0E, 0x0B0E, 0x0C0E, 0x0D0E, 0x0E0E, 0x0F0E, 0x100E, 0x110E, 0x120E, 0x130E, 0x140E
 row15:	.half 0x000F, 0x010F, 0x020F, 0x030F, 0x040F, 0x050F, 0x060F, 0x070F, 0x080F, 0x090F, 0x0A0F, 0x0B0F, 0x0C0F, 0x0D0F, 0x0E0F, 0x0F0F, 0x100F, 0x110F, 0x120F, 0x130F, 0x140F
 row16:	.half 0x0010, 0x0110, 0x0210, 0x0310, 0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0A10, 0x0B10, 0x0C10, 0x0D10, 0x0E10, 0x0F10, 0x1010, 0x1110, 0x1210, 0x1310, 0x1410
+ballcolor:		.byte 	0x00
 ;ANSI ESC Lookup Table
 blink:		.string 27,"[5m",0x00	;blink
 NBlink:		.string 27,"[25m",0x00	;stop blink
@@ -268,7 +268,7 @@ color:
 start_printer:
 	PUSH {lr}
 
-	LDR r1, ptr_to_startscore
+	LDR r0, ptr_to_startscore
 	BL output_string
 	BL new_line
 	LDR r1, ptr_to_topNbottom
@@ -325,8 +325,8 @@ start_printer:
 	BL output_string
 	BL new_line
 
-	PUSH {lr}
-	MOV pc, lr
+	POP {pc}
+
 	;############################################# start_printer END #############################################
 
 ;OUTPUT_CHARACTER_SUBROUTINE
