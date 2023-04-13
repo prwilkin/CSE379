@@ -1,6 +1,10 @@
 .data
 ;this file contains relevant subs and the printer function
+	.global ballcolor
+	.global scorestr
 
+ballcolor:		.byte 	0x00
+scorestr:		.string 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 scorePrompt: 	.string "      Score: ",0x00
 topNbottom: 	.string "+---------------------+",0x00
 center:			.string "|                     |",0x00
@@ -245,7 +249,7 @@ int2string:
 								;r4 or higher must push pop
 								;## not passed in ##
 								;r2  = avg size (lmao)
-	PUSH {r4}					;r4  = didgit compare
+								;r3  = didgit compare
 								;	 = avg maniuplated
 	PUSH {r5}					;r5  = temp var
 								;	 = digit to be stored
@@ -256,20 +260,20 @@ int2string:
 	MOV r10, #10					;init
 
 integer_digit:		;get size of int if 1
-	MOV r4, #9		;load 9 for digit compare
+	MOV r3, #9		;load 9 for digit compare
 	MOV r2, #1		;load 1 to count digits
-	CMP r0, r4		;compare number and digit compare to determine if more then one digit
+	CMP r0, r3		;compare number and digit compare to determine if more then one digit
 	BGT COMPARE		;if more then one digit jump to compare
 	MOV r2, #1		;return 1 as digit count
 
 COMPARE:			;get size of average >1
 	ADD r2, r2, #1
-	MUL r4, r4, r10		;jump another digit ie 9 to 90
-	ADD r4, r4, #9		;push to highest for digit ie 99 for two digits
-	CMP r0, r4
+	MUL r3, r3, r10		;jump another digit ie 9 to 90
+	ADD r3, r3, #9		;push to highest for digit ie 99 for two digits
+	CMP r0, r3
 	BGT COMPARE			;if greater then check for another digit
 
-	MOV r4, r0		;r4 will be maniuptlated
+	MOV r3, r0		;r3 will be maniuptlated
 	CMP r2, #1		;if first digit then base being 10 works
 	BEQ MODULO
 
@@ -282,9 +286,9 @@ BASETEN:			;this will calulate the size used for MOD ie. 10/100/1000
 loopint2string:
 
 MODULO:
-	SDIV r5, r4, r9		;input/base 10 mod
+	SDIV r5, r3, r9		;input/base 10 mod
 	MUL r5, r5, r9		;qoutient*base 10 mod
-	SUB r5, r4, r5		;input - product = remainder
+	SUB r5, r3, r5		;input - product = remainder
 	CMP r1, #1
 	BNE MODULOTWO
 	B STORE_int2string
@@ -303,13 +307,12 @@ STORE_int2string:
 
 	B loopint2string    ;go back to loop
 end_int2string:
-	MOV r4, #0x00
-	STRB r4, [r1, #1]
+	MOV r3, #0x00
+	STRB r3, [r1, #1]
 
 	POP {r10}	;reset stack and regs
 	POP {r9}	;FIFO
 	POP {r5}
-	POP {r4}
 
 	POP {lr}
 	mov pc, lr

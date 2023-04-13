@@ -1,7 +1,15 @@
 .data
 
+	.global score
+	.global gamelevel
+
+score:		.half 0x0000
+gamelevel:	.byte 0x01
+
 .text
 	.global start
+	.global game
+	.global lifelost
 **********************************from exterior file**********************************************
 	.global uart_init				;game_init_library
 	.global uart_interrupt_init		;game_init_library
@@ -33,6 +41,6 @@ wait:
 
 game:
 
-
+lifelost:
 
 .end
