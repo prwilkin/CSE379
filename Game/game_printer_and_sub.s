@@ -2,9 +2,18 @@
 ;this file contains relevant subs and the printer function
 	.global ballcolor
 	.global scorestr
+**********************************from exterior file**********************************************
+	.global paddleX			;game_physics_engine
+	.global cordinatesNow	;game_physics_engine
+	.global cordinatesNext	;game_physics_engine
+	.global blocksrow2		;game_physics_engine
+	.global blocksrow3		;game_physics_engine
+	.global blocksrow4		;game_physics_engine
+	.global blocksrow5		;game_physics_engine
+**************************************************************************************************
 
 ballcolor:		.byte 	0x00
-scorestr:		.string 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+scorestr:		.string 0x30, 0x00, 0x00, 0x00, 0x00, 0x00
 scorePrompt: 	.string "      Score: ",0x00
 topNbottom: 	.string "+---------------------+",0x00
 center:			.string "|                     |",0x00
@@ -49,8 +58,8 @@ defaulttx:	.string 27,"[39m",0x00	;default fg
 
 .text
 ;printer and subroutines: (in order of apperance in file)
-;	print, startprinter, output charcater, output string, clear page, new line, & int2string
-	.global printer
+;	gameprint, printer assist, printer assist block row, startprinter, output charcater, output string, clear page, new line, & int2string
+	.global gameprinter
 	.global start_printer
 	.global output_character
 	.global output_string
@@ -58,11 +67,15 @@ defaulttx:	.string 27,"[39m",0x00	;default fg
 	.global new_line
 	.global int2string
 **********************************from exterior file**********************************************
-
+	.global decode		;game_physics_engine
+	.global encode		;game_physics_engine
+	.global decodeBlock	;game_physics_engine
+	.global encodeBlock	;game_physics_engine
 **************************************************************************************************
 UART0:			.word	0x4000C000	; Base address for UART0
 U0FR: 			.equ 	0x18		; UART0 Flag Register
 **************************************************************************************************
+ptr_to_scorestr:		.word scorestr
 ptr_to_scorePrompt:		.word scorePrompt
 ptr_to_topNbottom:		.word topNbottom
 ptr_to_center:			.word center
@@ -103,16 +116,154 @@ ptr_to_purpletx:        .word purpletx
 ptr_to_bluetx:		    .word bluetx
 ptr_to_yellowtx:        .word yellowtx
 ptr_to_defaulttx:       .word defaulttx
-**************************************************************************************************
+**********************************ptr to exterior file**********************************************
+ptr_to_cordinatesNow:	.word cordinatesNow
+ptr_to_cordinatesNext:	.word cordinatesNext
+ptr_to_blocksrow2:		.word blocksrow2
+ptr_to_blocksrow3:		.word blocksrow3
+ptr_to_blocksrow4:		.word blocksrow4
+ptr_to_blocksrow5:		.word blocksrow5
+****************************************************************************************************
 
-printer:
+
+gameprinter:
 	PUSH {lr}
+
+	LDR r1, ptr_to_scorePrompt
+	BL output_string
+	LDR r1, ptr_to_scorestr
+	BL new_line
+	LDR r1, ptr_to_topNbottom
+	BL output_string
+	BL new_line
+	LDR r1, ptr_to_row0
+	BL printer_assist
+	LDR r1, ptr_to_row1
+	BL printer_assist
+	LDR r1, ptr_to_row2
+	LDR r2, ptr_to_blocksrow2
+	BL printer_assist_block_row
+game1lvl:
+
+game2lvls:
+
+game3lvls:
+
+game4lvls:
 
 	;implement
 
 	PUSH {lr}
 	MOV pc, lr
 	;############################################# printer END #############################################
+
+printer_assist:
+	PUSH {lr}
+	PUSH {r1}
+
+	MOV r0, #0x7C
+	BL output_character	;print left wall
+	MOV r4, #0			;set counter
+	LDR r2, ptr_to_cordinatesNext
+	LDRH r2, [r2]
+	POP {r1}
+printer_assist_looper:
+	CMP r4, #20
+	ADD r4, #1
+	BEQ printer_assist_end
+	LDRH r3, [r1]			;store cordinates
+	ADD r1, #2				;next block in row
+	CMP r3,	r2				;if current is next postion
+	BNE print_space
+	MOV r0, #0x2A
+	PUSH {r1, r2}
+	BL output_character
+	POP {r1, r2}
+	B printer_assist_looper
+print_space:
+	MOV r0, #0x20
+	PUSH {r1, r2}
+	BL output_character
+	POP {r1, r2}
+	B printer_assist_looper
+printer_assist_end:
+	MOV r0, #0x7C
+	BL output_character		;print right wall
+	BL new_line
+
+	POP {lr}
+	MOV pc, lr
+	;############################################# printer_assist END #############################################
+
+printer_assist_block_row:
+	PUSH {lr}		;r1 ptr to cordinates, r2 pointer to blockrow
+	PUSH {r1, r6}
+	MOV r0, #0x7C
+	BL output_character	;print left wall
+	POP {r1}
+	LDR r6, ptr_to_cordinatesNext
+	LDRH r6, [r6]
+	MOV r5, #0
+printer_assist_row:
+	CMP r5, #7	;print times for blocks
+	BGE printer_assist_block_row_end
+	BL decodeBlock
+	ADD r5, #1
+	BL color
+	MOV r3, #0
+printer_assist_block:
+	CMP r3, #3		;print 3 times per block
+	BEQ printer_assist_row
+	ADD r3, #1
+	LDRH r4, [r1]
+	CMP r6, r4
+	ITE EQ
+	MOVEQ r0, #0x2A		;if == print *
+	MOVNE r0, #0x20		;else print space
+	PUSH {r1, r2}
+	BL output_character
+	POP {r1, r2}
+	B printer_assist_looper
+printer_assist_block_row_end:
+	MOV r0, #0x7C
+	BL output_character		;print right wall
+	BL new_line
+	POP {r6, pc}
+	;############################################# printer_assist END #############################################
+
+color:
+	PUSH {r1, lr}
+	CMP r3, #0		;default
+	ITTT EQ
+	LDREQ r1, ptr_to_default
+	BLEQ output_string
+	POPEQ {r1, pc}
+	CMP r3, #2		;red
+	ITTT EQ
+	LDREQ r1, ptr_to_red
+	BLEQ output_string
+	POPEQ {r1, pc}
+	CMP r3, #4		;blue
+	ITTT EQ
+	LDREQ r1, ptr_to_blue
+	BLEQ output_string
+	POPEQ {r1, pc}
+	CMP r3, #6		;purple
+	ITTT EQ
+	LDREQ r1, ptr_to_purple
+	BLEQ output_string
+	POPEQ {r1, pc}
+	CMP r3, #8		;green
+	ITTT EQ
+	LDREQ r1, ptr_to_green
+	BLEQ output_string
+	POPEQ {r1, pc}
+	CMP r3, #10		;yellow
+	ITTT EQ
+	LDREQ r1, ptr_to_yellow
+	BLEQ output_string
+	POPEQ {r1, pc}
+	;############################################# color END #############################################
 
 start_printer:
 	PUSH {lr}

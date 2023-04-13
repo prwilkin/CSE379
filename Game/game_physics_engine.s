@@ -1,5 +1,11 @@
 .data
 	.global paddleX
+	.global cordinatesNow
+	.global cordinatesNext
+	.global blocksrow2
+	.global blocksrow3
+	.global blocksrow4
+	.global blocksrow5
 
 blocksrow2:			.byte 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01	;init alive with no color	1st 4 bits are for live
 blocksrow3:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color	2nd 4 bits are for color
@@ -272,6 +278,7 @@ checker180end:
 
 checker45:
 
+
 checker45end:
 	LDR r2, ptr_to_cordinatesNext
 	BL encode
@@ -329,11 +336,12 @@ gotBlock:
 
 blockHit:
 	PUSH {lr}
-	MOV r4, #0
-	BL decodeBlock	;kill block
 	LDR r4, ptr_to_ballcolor
 	STRB r3, [r4]	;update ball color
 	;BL rgb light
+	MOV r4, #0
+	MOV r3, #0
+	BL encodeBlock	;kill block
 	LDR r4, ptr_to_score
 	LDRH r2, [r4]
 	LDR r4, ptr_to_gamelevel
