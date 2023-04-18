@@ -324,7 +324,7 @@ check3:
 	AND r2, #0x8				;bit masking
 	CMP r2, #0x8				;compare r2 wih 0x8
 	BEQ equal4					;branch if r2 does equal to 0x8
-	BNE equal4					;branch if r2 does not equal to 0x8
+	BNE notequal4					;branch if r2 does not equal to 0x8
 equal1:
 	ORR r3, #0x1				;set bit 0 in r3
 	B end						;branch to end
