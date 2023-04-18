@@ -67,9 +67,11 @@ number:		.string	0x00,0x00,0x00,0x00,0x00
 	.global uart_interrupt_init
 	.global gpio_interrupt_init
 	.global timer_interrupt_init
+	.global timer2_interrupt_init
 	.global UART0_Handler
 	.global Switch_Handler
 	.global Timer_Handler
+	.global Timer2_Handler
 	.global simple_read_character
 	.global output_character
 	.global output_string
@@ -296,8 +298,7 @@ timer_interrupt_init:
 
 	;Setup Interval Period
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0x2400				;set r1 as 16000000 to make the Timer interrupt to start at 1 second
-	MOVT r1, #0x00F4
+	MOV r1, #0x3E8
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Setup Timer to Interrupt Processor
@@ -322,6 +323,58 @@ timer_interrupt_init:
 	MOV pc, lr
 	;############################################# timer_interrupt_init END #############################################
 
+timer2_interrupt_init:
+	PUSH {lr}
+	;Enable Clock for Timer (Tx) where x is timer number
+	MOV r0, #0xE000				;move memory address of Clock base address to r0
+	MOVT r0, #0x400F
+	LDR r1, [r0, #0x604]		;load content of r0 with offset with 0x604 to r1
+	ORR r1, #0x2				;set bit 0 to allow enable Clock for Timer1
+	STR r1, [r0, #0x604]		;store r1 into r0 to allow Clock to be enable for Timer1
+
+	;Disable Timer
+	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
+	BIC r1, #0x1				;clear bit 0 to disable Timer1
+	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer1
+
+	;Setting up Timer for 32-Bit Mode
+	LDR r1, [r0, #0x000]		;load content of r0 with offset with 0x000 to r1
+	BIC r1, #0x000				;Clear bit 0,1,2 to configure the Timer as a single 32-bit timer
+	STR r1, [r0, #0x000]		;store r1 into r0 to set Timer0 as a single 32-bit timer
+
+	;Put Timer in Periodic Mode
+	LDR r1, [r0, #0x004]		;load content of r0 with offset with 0x004 to r1
+	ORR r1, #0x2				;Write 2 to TAMR to change the mode of Timer0 to Periodic Mode
+	STR r1, [r0, #0x004]		;store r1 into r0 to change Timer as Periodic Mode
+
+	;Setup Interval Period
+	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
+	MOV r1, #0x3E8				;set r1 as 16000000 to make the Timer interrupt to start at 1 millisecond
+	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
+
+	;Setup Timer to Interrupt Processor
+	LDR r1, [r0, #0x018]		;load content of r0 with offset with 0x018 to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer to Interrupt Processor
+	STR r1, [r0, #0x018]		;store r1 into r0 to enable Timer to Interrupt Processor
+
+	;Configure Processor to Allow Timer to Interrupt Processor
+	LDR r0, EN0					;move memory address of EN0 base address to r0
+	LDR r1, [r0, #0x100]		;load content of r0 with offset of 0x100 to r1
+	ORR r1, #0x200000			;set bit 21 to Timer0 to Interrupt Processor
+	STR r1, [r0, #0x100]		;store r1 into r0 to allow Timer0 to Interrupt Processor
+
+	;Enable Timer
+	MOV r0, #0x1000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
+
+	POP {lr}
+	MOV pc, lr
+	;############################################# timer_interrupt_init END #############################################
 
 ;UART0_HANLDER SUBROUTINE
 UART0_Handler:
@@ -523,19 +576,56 @@ end4light:
 
 Timer_Handler:
 	PUSH {lr}
+	PUSH {r10,r5,r11,r12}
 
-	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOV r10, #5
+	MOV r5, #0x8502
+	MOVT r5, #0x1938
+	MOV r11, #0
+	MOV r12, #0
+	MOV r7, #0x2400
+	MOVT r7, #0x00F4
+
+	MOV r0, #0x0000				;move memory address of Timer1 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
-	ORR r1, #0x1				;set bit 0 to clear Timer0 interrupt so Timer0 interrupt can be interrupted again
-	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer0 interrupt can be itnerrupted again
-	ADD r9, r9, #1
-	BL game
+	ORR r1, #0x1				;set bit 0 to clear Timer1 interrupt so Timer1 interrupt can be interrupted again
+	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer1 interrupt can be interrupted again
 
+	;Disable Timer
+	MOV r0, #0x0000				;move memory address of Timer1 base address to r1
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
+	BIC r1, #0x1				;clear bit 0 to disable Timer1
+	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer1
+
+	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
+	ADD r1, #947
+	STR r1, [r0, #0x028]
+
+	SDIV r1, r7, r1
+AGAIN:
+	MOV r0, r9
+	ADD r1, r1, #1
+	SDIV r2, r1, r10
+	MUL r3, r2, r10
+	SUB r9, r1, r3
+	CMP r9, r0
+	BEQ AGAIN
+
+	;Enable Timer
+	MOV r0, #0x0000				;move memory address of Timer1 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer1
+	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer1
+
+
+
+	POP {r10,r5,r11,r12}
 	POP {lr}
 	BX lr       	; Return
 	;############################################# Timer_Handler END #############################################
-
 
 simple_read_character:
 	PUSH {lr}   ; Store register lr on stack
