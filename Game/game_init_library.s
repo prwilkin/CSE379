@@ -91,8 +91,7 @@ uart_init:
 	ORR r1, r1, #0x11
 	STR r1, [r0]
 
-	POP {lr}
-	mov pc, lr
+	POP {pc}
 	;############################################# uart_init END #############################################
 
 uart_interrupt_init:
@@ -109,8 +108,7 @@ uart_interrupt_init:
 	ORR r1, r1, #0x20	;mask and set bit 5 to 1
 	STR r1, [r0, #0x100]
 
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# uart_interrupt_init END #############################################
 
 gpio_interrupt_init:
@@ -165,8 +163,7 @@ gpio_interrupt_init:
 	ORR r1, #0x40000000			;set bit 30 to allow GPIO Port F to Interrupt Processor
 	STR r1, [r0, #0x100]		;store r1 into r0 to allow GPIO Port F to Interrupt Processor
 
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# gpio_interrupt_init END #############################################
 
 Four_LED_init:
@@ -189,8 +186,7 @@ Four_LED_init:
 	ORR r1, #0xF				;bitwise manipluation to set bit 0 - 3 as 1 for Port B Pin 0 - 3
 	STR r1, [r0, #0x51C]		;store r1 to r0 with offset of 0x51C enabling Port B Pin 0 - 3 as Digital Pin
 
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# 4_LED_init #############################################
 
 Four_BUTTON_init:
@@ -212,8 +208,7 @@ Four_BUTTON_init:
     LDR r1, [r0, #0x51C]		;load content of r0 with offset of 0x51C to r1
 	ORR r1, #0xF				;set bit 0 - 3 to enable GPIO Pin 0 - 3 for Port D
 	STR r1, [r0, #0x51C]		;store r1 to r0 with offset of 0x51C enabling Port D Pin 0 - 3 as Digital Pin
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# 4_BUTTON_init #############################################
 
 RGB_LIGHT_init:
@@ -236,8 +231,7 @@ RGB_LIGHT_init:
 	ORR r1, #0xA				;bitwise manipluation to set bit 1 - 3 as 1 for Port F Pin 1 - 3
 	STR r1, [r0, #0x51C]		;store r1 to r0 with offset of 0x51C enabling Port F Pin 1 - 3 as Digital Pin
 
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# RGB_LIGHT_init #############################################
 
 timer_interrupt_init:
@@ -290,8 +284,7 @@ timer_interrupt_init:
 	ORR r1, #0x1				;set bit 0 to enable Timer0
 	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
 
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# timer_interrupt_init END #############################################
 
 .end

@@ -10,13 +10,10 @@ GEN_OPTS__FLAG :=
 GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
-"./keypad_init.obj" \
 "./lab4part1.obj" \
 "./lab_4.obj" \
-"./lab_4_library.obj" \
 "./lab_4_wrapper.obj" \
 "./library_lab_4.obj" \
-"./main.obj" \
 "./tm4c123gh6pm_startup_ccs.obj" \
 "../tm4c123gh6pm.cmd" \
 $(GEN_CMDS__FLAG) \
@@ -148,9 +145,9 @@ Lab4.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)
-	-$(RM) "keypad_init.obj" "lab4part1.obj" "lab_4.obj" "lab_4_library.obj" "lab_4_wrapper.obj" "library_lab_4.obj" "main.obj" "tm4c123gh6pm_startup_ccs.obj" 
-	-$(RM) "lab_4_wrapper.d" "main.d" "tm4c123gh6pm_startup_ccs.d" 
-	-$(RM) "keypad_init.d" "lab4part1.d" "lab_4.d" "lab_4_library.d" "library_lab_4.d" 
+	-$(RM) "lab4part1.obj" "lab_4.obj" "lab_4_wrapper.obj" "library_lab_4.obj" "tm4c123gh6pm_startup_ccs.obj" 
+	-$(RM) "lab_4_wrapper.d" "tm4c123gh6pm_startup_ccs.d" 
+	-$(RM) "lab4part1.d" "lab_4.d" "library_lab_4.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

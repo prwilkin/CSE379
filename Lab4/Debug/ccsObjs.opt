@@ -1,10 +1,7 @@
-"./keypad_init.obj"
 "./lab4part1.obj"
 "./lab_4.obj"
-"./lab_4_library.obj"
 "./lab_4_wrapper.obj"
 "./library_lab_4.obj"
-"./main.obj"
 "./tm4c123gh6pm_startup_ccs.obj"
 "../tm4c123gh6pm.cmd"
 -llibc.a

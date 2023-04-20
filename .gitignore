@@ -16,3 +16,17 @@
 \Lab3\.ccsproject
 \Lab3\Debug\makefile
 \Lab3
+\Testing
+Testing/.ccsproject
+Testing/.cproject
+Testing/.launches/Testing.launch
+Testing/.project
+Testing/.settings/org.eclipse.cdt.codan.core.prefs
+Testing/.settings/org.eclipse.cdt.debug.core.prefs
+Testing/.settings/org.eclipse.core.resources.prefs
+Testing/main.c
+Testing/targetConfigs/readme.txt
+Testing/targetConfigs/Tiva TM4C123GH6PM.ccxml
+Testing/test.s
+Testing/tm4c123gh6pm.cmd
+Testing/tm4c123gh6pm_startup_ccs.c

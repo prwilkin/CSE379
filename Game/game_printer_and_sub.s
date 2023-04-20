@@ -12,7 +12,6 @@
 	.global blocksrow5		;game_physics_engine
 **************************************************************************************************
 startscore:		.string "      Score: 0",0x00
-				.align
 scorePrompt: 	.string "      Score: ",0x00
 scorestr:		.string 0x30, 0x00, 0x00, 0x00, 0x00, 0x00
 topNbottom: 	.string "+---------------------+",0x00
@@ -41,6 +40,7 @@ row15:	.half 0x000F, 0x010F, 0x020F, 0x030F, 0x040F, 0x050F, 0x060F, 0x070F, 0x0
 row16:	.half 0x0010, 0x0110, 0x0210, 0x0310, 0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0A10, 0x0B10, 0x0C10, 0x0D10, 0x0E10, 0x0F10, 0x1010, 0x1110, 0x1210, 0x1310, 0x1410
 ballcolor:		.byte 	0x00
 ;ANSI ESC Lookup Table
+disablecur:	.string 27,"[?25l",0x00	;disable cursor
 blink:		.string 27,"[5m",0x00	;blink
 NBlink:		.string 27,"[25m",0x00	;stop blink
 red:		.string 27,"[41m",0x00	;red bg
@@ -102,6 +102,7 @@ ptr_to_row13:           .word row13
 ptr_to_row14:           .word row14
 ptr_to_row15:           .word row15
 ptr_to_row16:           .word row16
+ptr_to_disablecur:		.word disablecur
 ptr_to_blink:		    .word blink
 ptr_to_NBlink:		    .word NBlink
 ptr_to_red:		        .word red
@@ -191,8 +192,7 @@ printer_assist_end:
 	BL output_character		;print right wall
 	BL new_line
 
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# printer_assist END #############################################
 
 printer_assist_block_row:
@@ -262,71 +262,77 @@ color:
 	ITTT EQ
 	LDREQ r1, ptr_to_yellow
 	BLEQ output_string
-	POPEQ {r1, pc}
+	POPEQ {r0, pc}
 	;############################################# color END #############################################
 
 start_printer:
 	PUSH {lr}
 
+	BL clr_page
+	LDR r0, ptr_to_disablecur
+	BL output_string
 	LDR r0, ptr_to_startscore
 	BL output_string
 	BL new_line
-	LDR r1, ptr_to_topNbottom
+	LDR r0, ptr_to_topNbottom
 	BL output_string
 	BL new_line
-	LDR r1, ptr_to_center
+	LDR r0, ptr_to_center
 	BL output_string	;row 0
 	BL new_line
-	BL output_string	;row1
+	LDR r0, ptr_to_center
+	BL output_string	;row 1
 	BL new_line
-	BL output_string	;row2
+	LDR r0, ptr_to_center
+	BL output_string	;row 2
 	BL new_line
-	BL output_string	;row3
+	LDR r0, ptr_to_center
+	BL output_string	;row 3
 	BL new_line
-	BL output_string	;row4
+	LDR r0, ptr_to_center
+	BL output_string	;row 4
 	BL new_line
-	LDR r1, ptr_to_startrow5
+	LDR r0, ptr_to_startrow5
 	BL output_string
 	BL new_line
-	LDR r1, ptr_to_startrow6
+	LDR r0, ptr_to_startrow6
 	BL output_string
 	BL new_line
-	LDR r1, ptr_to_startrow7
+	LDR r0, ptr_to_startrow7
 	BL output_string
 	BL new_line
-	LDR r1, ptr_to_center
+	LDR r0, ptr_to_center
 	BL output_string	;row 8
 	BL new_line
-	LDR r1, ptr_to_center
+	LDR r0, ptr_to_center
 	BL output_string	;row 9
 	BL new_line
-	LDR r1, ptr_to_center
+	LDR r0, ptr_to_center
 	BL output_string	;row 10
 	BL new_line
-	LDR r1, ptr_to_center
+	LDR r0, ptr_to_center
 	BL output_string	;row 11
 	BL new_line
-	LDR r1, ptr_to_center
+	LDR r0, ptr_to_center
 	BL output_string	;row 12
 	BL new_line
-	LDR r1, ptr_to_center
+	LDR r0, ptr_to_center
 	BL output_string	;row 13
 	BL new_line
-	LDR r1, ptr_to_center
+	LDR r0, ptr_to_center
 	BL output_string	;row 14
 	BL new_line
-	LDR r1, ptr_to_center
+	LDR r0, ptr_to_center
 	BL output_string	;row 15
 	BL new_line
-	LDR r1, ptr_to_paddle
+	LDR r0, ptr_to_paddle
 	BL output_string	;row 16
 	BL new_line
-	LDR r1, ptr_to_topNbottom
+	LDR r0, ptr_to_topNbottom
 	BL output_string
 	BL new_line
 
 	POP {pc}
-
 	;############################################# start_printer END #############################################
 
 ;OUTPUT_CHARACTER_SUBROUTINE
@@ -341,8 +347,7 @@ output_character_loop:
 	BNE output_character_loop
 	STRB r0, [r2]				;if 0 store in data
 
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# output_character END #############################################
 
 
@@ -364,8 +369,7 @@ LOAD_num_string:
 
 end_output_string:
 	POP {r0}
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# output_string END #############################################
 
 ;CLR_PAGE SUBROUTINE
@@ -375,8 +379,7 @@ clr_page:
 	MOV r0, #0xC
 	BL output_character
 
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# clr_page END #############################################
 
 ;NEW_LINE SUBROUTINE
@@ -388,8 +391,7 @@ new_line:
 	MOV r0, #0xD
 	BL output_character
 
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# new_line END #############################################
 
 ;INT2STRING SUBROUTINE
@@ -465,8 +467,7 @@ end_int2string:
 	POP {r9}	;FIFO
 	POP {r5}
 
-	POP {lr}
-	mov pc, lr
+	POP {pc}
 	;############################################# int2string END #############################################
 
 .end
