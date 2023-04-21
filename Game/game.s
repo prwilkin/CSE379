@@ -21,6 +21,8 @@ gamelevel:	.byte 0x01
 	.global DisableT		;game_handler_library
 	.global EnableT			;game_handler_library
 	.global start_printer		;game_printer_and_sub
+	.global gameprinter			;game_printer_and_sub
+	.global checkermanager		;game_physics_engine
 **************************************************************************************************
 
 start:
@@ -34,12 +36,17 @@ start:
 	BL DisableT			;pause timer until game actually starts
 	BL start_printer
 	;BL subroutine for alice board press
+	BL EnableT
 	B wait
 
 wait:
 	B wait
 
 game:
+	PUSH {lr}
+	BL checkermanager
+	BL gameprinter
+	POP {pc}
 
 lifelost:
 

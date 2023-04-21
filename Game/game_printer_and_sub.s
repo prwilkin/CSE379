@@ -58,7 +58,8 @@ defaulttx:	.string 27,"[39m",0x00	;default fg
 
 .text
 ;printer and subroutines: (in order of apperance in file)
-;	gameprint, printer assist, printer assist block row, startprinter, output charcater, output string, clear page, new line, & int2string
+;	gameprint, printer assist, printer assist block row, ballPrint, spacePrint, blockPrint, color,
+;	 output charcater, output string, clear page, new line, & int2string
 	.global gameprinter
 	.global start_printer
 	.global output_character
@@ -119,6 +120,7 @@ ptr_to_bluetx:		    .word bluetx
 ptr_to_yellowtx:        .word yellowtx
 ptr_to_defaulttx:       .word defaulttx
 **********************************ptr to exterior file**********************************************
+ptr_to_paddleX:			.word paddleX
 ptr_to_cordinatesNow:	.word cordinatesNow
 ptr_to_cordinatesNext:	.word cordinatesNext
 ptr_to_blocksrow2:		.word blocksrow2
@@ -132,31 +134,54 @@ gameprinter:
 	PUSH {lr}
 
 	LDR r1, ptr_to_scorePrompt
-	BL output_string
+	BL output_string			;print score prompt
 	LDR r1, ptr_to_scorestr
-	BL new_line
+	BL new_line					;print score as #
 	LDR r1, ptr_to_topNbottom
-	BL output_string
+	BL output_string			;print top wall
 	BL new_line
 	LDR r1, ptr_to_row0
-	BL printer_assist
+	BL printer_assist		;print row 0
 	LDR r1, ptr_to_row1
-	BL printer_assist
+	BL printer_assist		;print row 1
 	LDR r1, ptr_to_row2
 	LDR r2, ptr_to_blocksrow2
-	BL printer_assist_block_row
-game1lvl:
+	BL printer_assist_block_row	;print row 2
+	LDR r1, ptr_to_row3
+	LDR r2, ptr_to_blocksrow3
+	BL printer_assist_block_row	;print row 3
+	LDR r1, ptr_to_row4
+	LDR r2, ptr_to_blocksrow4
+	BL printer_assist_block_row	;print row 4
+	LDR r1, ptr_to_row5
+	LDR r2, ptr_to_blocksrow5
+	BL printer_assist_block_row	;print row 5
+	LDR r1, ptr_to_row6
+	BL printer_assist		;print row 6
+	LDR r1, ptr_to_row7
+	BL printer_assist		;print row 7
+	LDR r1, ptr_to_row8
+	BL printer_assist		;print row 8
+	LDR r1, ptr_to_row9
+	BL printer_assist		;print row 9
+	LDR r1, ptr_to_row10
+	BL printer_assist		;print row 10
+	LDR r1, ptr_to_row11
+	BL printer_assist		;print row 11
+	LDR r1, ptr_to_row12
+	BL printer_assist		;print row 12
+	LDR r1, ptr_to_row13
+	BL printer_assist		;print row 13
+	LDR r1, ptr_to_row14
+	BL printer_assist		;print row 14
+	LDR r1, ptr_to_row15
+	BL printer_assist		;print row 15
+	LDR r1, ptr_to_row16
+	BL printer_assist_paddle	;print row 16
+	LDR r1, ptr_to_topNbottom
+	BL output_string			;print bottom wall
 
-game2lvls:
-
-game3lvls:
-
-game4lvls:
-
-	;implement
-
-	PUSH {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# printer END #############################################
 
 printer_assist:
@@ -175,8 +200,37 @@ printer_assist_loop:
 	CMP r1, r5
 	BLNE spacePrint
 	ADD r1, #0x0100		;move 1 right
-	B printer_assist_row
+	B printer_assist_loop
 printer_assist_end:
+	MOV r0, #0x7C
+	BL output_character		;print right wall
+	BL new_line
+	POP {pc}
+	;############################################# printer_assist END #############################################
+
+printer_assist_paddle:
+	PUSH {lr}		;r1 ptr to cordinates,
+	PUSH {r1}
+	MOV r0, #0x7C
+	BL output_character	;print left wall
+	POP {r1}
+	LDR r5, ptr_to_cordinatesNext
+	LDRH r5, [r5]
+	LDR r2, ptr_to_paddleX
+	LDRB r2, [r2]
+printer_assist_paddle_loop:
+	CMP r1, #0x1500		;if more then 20
+	BGE printer_assist_paddle_end
+	CMP r1, r2
+	ITT EQ
+	ADDEQ r1, #0x0500	;move 5 right
+	BLEQ paddlePrint
+	CMP r1, r5
+	ITT EQ
+	ADDEQ r1, #0x0100		;move 1 right
+	BLEQ ballPrint		;if at ball print ball
+	B printer_assist_paddle_loop
+printer_assist_paddle_end:
 	MOV r0, #0x7C
 	BL output_character		;print right wall
 	BL new_line
@@ -221,6 +275,19 @@ printer_assist_block_row_end:
 	BL new_line
 	POP {r6, pc}
 	;############################################# printer_assist_block_row END #############################################
+
+paddlePrint:
+	PUSH {r1, r2, lr}
+
+	MOV r0, #0x3D
+	BL output_character
+	BL output_character
+	BL output_character
+	BL output_character
+	BL output_character
+
+	POP {r1, r2, pc}
+	;############################################# paddlePrint END #############################################
 
 ballPrint:
 	PUSH {r1, r2, lr}

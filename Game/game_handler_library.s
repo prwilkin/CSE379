@@ -12,7 +12,7 @@
 	.global DisableT
 	.global EnableT
 **********************************from exterior file**********************************************
-
+	.global game
 **************************************************************************************************
 SYSCTL:			.word	0x400FE000	; Base address for System Control
 GPIO_PORT_A:	.word	0x40004000	; Base address for GPIO Port A
@@ -109,6 +109,7 @@ Timer_Handler:
 	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
 	ORR r1, #0x1				;set bit 0 to clear Timer0 interrupt so Timer0 interrupt can be interrupted again
 	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer0 interrupt can be itnerrupted again
+	BL game
 
 	POP {lr}
 	BX lr       	; Return
@@ -137,13 +138,13 @@ DisableT:
 
 EnableT:
 	;Enable Timer
+	PUSH {lr}
 	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
 	ORR r1, #0x1				;set bit 0 to enable Timer0
 	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
-	POP {lr}
-	MOV pc, lr
+	POP {pc}
 	;############################################# EnableT END #############################################
 
 .end
