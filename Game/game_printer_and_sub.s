@@ -102,6 +102,7 @@ ptr_to_row13:           .word row13
 ptr_to_row14:           .word row14
 ptr_to_row15:           .word row15
 ptr_to_row16:           .word row16
+ptr_to_ballcolor:		.word ballcolor
 ptr_to_disablecur:		.word disablecur
 ptr_to_blink:		    .word blink
 ptr_to_NBlink:		    .word NBlink
@@ -159,39 +160,26 @@ game4lvls:
 	;############################################# printer END #############################################
 
 printer_assist:
-	PUSH {lr}
+	PUSH {lr}		;r1 ptr to cordinates,
 	PUSH {r1}
-
 	MOV r0, #0x7C
 	BL output_character	;print left wall
-	MOV r4, #0			;set counter
-	LDR r2, ptr_to_cordinatesNext
-	LDRH r2, [r2]
 	POP {r1}
-printer_assist_looper:
-	CMP r4, #20
-	ADD r4, #1
-	BEQ printer_assist_end
-	LDRH r3, [r1]			;store cordinates
-	ADD r1, #2				;next block in row
-	CMP r3,	r2				;if current is next postion
-	BNE print_space
-	MOV r0, #0x2A
-	PUSH {r1, r2}
-	BL output_character
-	POP {r1, r2}
-	B printer_assist_looper
-print_space:
-	MOV r0, #0x20
-	PUSH {r1, r2}
-	BL output_character
-	POP {r1, r2}
-	B printer_assist_looper
+	LDR r5, ptr_to_cordinatesNext
+	LDRH r5, [r5]
+printer_assist_loop:
+	CMP r1, #0x1500		;if more then 20
+	BGE printer_assist_end
+	CMP r1, r5
+	BLEQ ballPrint	;if at ball print ball
+	CMP r1, r5
+	BLNE spacePrint
+	ADD r1, #0x0100		;move 1 right
+	B printer_assist_row
 printer_assist_end:
 	MOV r0, #0x7C
 	BL output_character		;print right wall
 	BL new_line
-
 	POP {pc}
 	;############################################# printer_assist END #############################################
 
@@ -207,63 +195,135 @@ printer_assist_block_row:
 printer_assist_row:
 	CMP r5, #7	;print times for blocks
 	BGE printer_assist_block_row_end
-	BL decodeBlock
-	ADD r5, #1
-	BL color
-	MOV r3, #0
-printer_assist_block:
-	CMP r3, #3		;print 3 times per block
+	BL decodeBlock	;get block color and live in r3 and r4
+	ADD r5, #1	;increment block offset
+	CMP r4, #1	;if block live
+	ITTT EQ
+	ADDEQ r1, #0x0300	;move 3 right
+	BLEQ blockPrint
 	BEQ printer_assist_row
-	ADD r3, #1
-	LDRH r4, [r1]
-	CMP r6, r4
-	ITE EQ
-	MOVEQ r0, #0x2A		;if == print *
-	MOVNE r0, #0x20		;else print space
-	PUSH {r1, r2}
-	BL output_character
-	POP {r1, r2}
-	B printer_assist_looper
+	CMP r1, r6	;block dead check for ball
+	BLEQ ballPrint
+	BLNE spacePrint
+	ADD r1, #0x0100		;move 1 right
+	CMP r1, r6	;block dead check for ball
+	BLEQ ballPrint
+	BLNE spacePrint
+	ADD r1, #0x0100		;move 1 right
+	CMP r1, r6	;block dead check for ball
+	BLEQ ballPrint
+	BLNE spacePrint
+	ADD r1, #0x0100		;move 1 right
+	B printer_assist_row
 printer_assist_block_row_end:
 	MOV r0, #0x7C
 	BL output_character		;print right wall
 	BL new_line
 	POP {r6, pc}
-	;############################################# printer_assist END #############################################
+	;############################################# printer_assist_block_row END #############################################
+
+ballPrint:
+	PUSH {r1, r2, lr}
+
+	LDR r3, ptr_to_ballcolor
+	LDRB r3, [r3]
+	BL colorBall		;set ball color
+	MOV r0, #0x2A		;ascii *
+	BL output_character
+	MOV r3, #0
+	BL colorBall		;back to default color
+
+	POP {r1, r2, pc}
+	;############################################# ballPrint END #############################################
+
+spacePrint:
+	PUSH {r1, r2, lr}
+	MOV r0, #0x20
+	BL output_character
+	POP {r1, r2, pc}
+	;############################################# spacePrint END #############################################
+
+blockPrint:
+	PUSH {r1, r2, lr}
+
+	BL color			;set block color
+	MOV r0, #0x20		;ascii space
+	BL output_character
+	BL output_character
+	BL output_character	;print 3 spaces for block
+	MOV r3, #0
+	BL color			;set back to default color
+
+	POP {r1, r2, pc}
+	;############################################# blockPrint END #############################################
 
 color:
-	PUSH {r1, lr}
+	PUSH {lr}
 	CMP r3, #0		;default
 	ITTT EQ
-	LDREQ r1, ptr_to_default
+	LDREQ r1, ptr_to_defaulttx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #2		;red
 	ITTT EQ
-	LDREQ r1, ptr_to_red
+	LDREQ r1, ptr_to_redtx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #4		;blue
 	ITTT EQ
-	LDREQ r1, ptr_to_blue
+	LDREQ r1, ptr_to_bluetx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #6		;purple
 	ITTT EQ
-	LDREQ r1, ptr_to_purple
+	LDREQ r1, ptr_to_purpletx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #8		;green
 	ITTT EQ
-	LDREQ r1, ptr_to_green
+	LDREQ r1, ptr_to_greentx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #10		;yellow
 	ITTT EQ
+	LDREQ r1, ptr_to_yellowtx
+	BLEQ output_string
+	POPEQ {pc}
+	;############################################# color END #############################################
+
+colorBall:
+	PUSH {lr}
+	CMP r3, #0		;default
+	ITTT EQ
+	LDREQ r1, ptr_to_default
+	BLEQ output_string
+	POPEQ {pc}
+	CMP r3, #2		;red
+	ITTT EQ
+	LDREQ r1, ptr_to_red
+	BLEQ output_string
+	POPEQ {pc}
+	CMP r3, #4		;blue
+	ITTT EQ
+	LDREQ r1, ptr_to_blue
+	BLEQ output_string
+	POPEQ {pc}
+	CMP r3, #6		;purple
+	ITTT EQ
+	LDREQ r1, ptr_to_purple
+	BLEQ output_string
+	POPEQ {pc}
+	CMP r3, #8		;green
+	ITTT EQ
+	LDREQ r1, ptr_to_green
+	BLEQ output_string
+	POPEQ {pc}
+	CMP r3, #10		;yellow
+	ITTT EQ
 	LDREQ r1, ptr_to_yellow
 	BLEQ output_string
-	POPEQ {r0, pc}
-	;############################################# color END #############################################
+	POPEQ {pc}
+	;############################################# colorBall END #############################################
 
 start_printer:
 	PUSH {lr}

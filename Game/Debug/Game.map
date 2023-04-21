@@ -1,17 +1,17 @@
 ******************************************************************************
                   TI ARM Linker PC v20.2.7                     
 ******************************************************************************
->> Linked Thu Apr 20 02:03:47 2023
+>> Linked Thu Apr 20 21:02:39 2023
 
 OUTPUT FILE NAME:   <Game.out>
-ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 00001451
+ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 000014f1
 
 
 MEMORY CONFIGURATION
 
          name            origin    length      used     unused   attr    fill
 ----------------------  --------  ---------  --------  --------  ----  --------
-  FLASH                 00000000   00040000  000014c6  0003eb3a  R  X
+  FLASH                 00000000   00040000  00001566  0003ea9a  R  X
   SRAM                  20000000   00008000  00000200  00007e00  RW X
 
 
@@ -19,9 +19,9 @@ SEGMENT ALLOCATION MAP
 
 run origin  load origin   length   init length attrs members
 ----------  ----------- ---------- ----------- ----- -------
-00000000    00000000    000014c6   000014c6    r-x
+00000000    00000000    00001566   00001566    r-x
   00000000    00000000    0000026c   0000026c    r-- .intvecs
-  0000026c    0000026c    0000125a   0000125a    r-x .text
+  0000026c    0000026c    000012fa   000012fa    r-x .text
 20000000    20000000    00000200   00000000    rw-
   20000000    20000000    00000200   00000000    rw- .stack
 
@@ -34,18 +34,18 @@ section   page    origin      length       input sections
 .intvecs   0    00000000    0000026c     
                   00000000    0000026c     tm4c123gh6pm_startup_ccs.obj (.intvecs)
 
-.text      0    0000026c    0000125a     
-                  0000026c    000007bc     game_printer_and_sub.obj (.text)
-                  00000a28    000006c4     game_physics_engine.obj (.text)
-                  000010ec    00000260     game_init_library.obj (.text)
-                  0000134c    00000102     game_handler_library.obj (.text)
-                  0000144e    00000002     --HOLE-- [fill = 0]
-                  00001450    0000002c     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.text:_c_int00_noinit_noargs:_c_int00_noinit_noargs)
-                  0000147c    0000002c     game.obj (.text)
-                  000014a8    0000000c     tm4c123gh6pm_startup_ccs.obj (.text)
-                  000014b4    0000000a     main.obj (.text)
-                  000014be    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
-                  000014c2    00000004                                   : exit.c.obj (.text:abort:abort)
+.text      0    0000026c    000012fa     
+                  0000026c    0000085c     game_printer_and_sub.obj (.text)
+                  00000ac8    000006c4     game_physics_engine.obj (.text)
+                  0000118c    00000260     game_init_library.obj (.text)
+                  000013ec    00000102     game_handler_library.obj (.text)
+                  000014ee    00000002     --HOLE-- [fill = 0]
+                  000014f0    0000002c     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.text:_c_int00_noinit_noargs:_c_int00_noinit_noargs)
+                  0000151c    0000002c     game.obj (.text)
+                  00001548    0000000c     tm4c123gh6pm_startup_ccs.obj (.text)
+                  00001554    0000000a     main.obj (.text)
+                  0000155e    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
+                  00001562    00000004                                   : exit.c.obj (.text:abort:abort)
 
 .cinit     0    00000000    00000000     UNINITIALIZED
 
@@ -64,7 +64,7 @@ MODULE SUMMARY
        Module                         code   ro data   rw data
        ------                         ----   -------   -------
     .\
-       game_printer_and_sub.obj       1980   0         0      
+       game_printer_and_sub.obj       2140   0         0      
        game_physics_engine.obj        1732   0         0      
        tm4c123gh6pm_startup_ccs.obj   12     620       0      
        game_init_library.obj          608    0         0      
@@ -72,7 +72,7 @@ MODULE SUMMARY
        game.obj                       44     0         0      
        main.obj                       10     0         0      
     +--+------------------------------+------+---------+---------+
-       Total:                         4644   620       0      
+       Total:                         4804   620       0      
                                                               
     D:\Program Files\ccs\tools\compiler\ti-cgt-arm_20.2.7.LTS\lib\rtsv7M4_T_le_v4SPD16_eabi.lib
        boot_cortex_m.c.obj            44     0         0      
@@ -83,23 +83,23 @@ MODULE SUMMARY
                                                               
        Stack:                         0      0         512    
     +--+------------------------------+------+---------+---------+
-       Grand Total:                   4696   620       512    
+       Grand Total:                   4856   620       512    
 
 
 GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
 
 address   name                   
 -------   ----                   
-000014c3  C$$EXIT                
-00001421  DisableT               
-00001439  EnableT                
-00001281  Four_BUTTON_init       
-00001251  Four_LED_init          
-000012b1  RGB_LIGHT_init         
-000014a9  ResetISR               
-000013ad  Switch_Handler         
-000013fb  Timer_Handler          
-0000136d  UART0_Handler          
+00001563  C$$EXIT                
+000014c1  DisableT               
+000014d9  EnableT                
+00001321  Four_BUTTON_init       
+000012f1  Four_LED_init          
+00001351  RGB_LIGHT_init         
+00001549  ResetISR               
+0000144d  Switch_Handler         
+0000149b  Timer_Handler          
+0000140d  UART0_Handler          
 20000200  __STACK_END            
 00000200  __STACK_SIZE           
 20000200  __STACK_TOP            
@@ -113,45 +113,45 @@ UNDEFED   __mpu_init
 20000000  __stack                
 20000000  __start___llvm_prf_cnts
 20000000  __stop___llvm_prf_cnts 
-00001451  _c_int00_noinit_noargs 
-000014bf  _system_pre_init       
-000014c3  abort                  
+000014f1  _c_int00_noinit_noargs 
+0000155f  _system_pre_init       
+00001563  abort                  
 000005f0  ballcolor              
 ffffffff  binit                  
-00000a28  blocksrow2             
-00000a2f  blocksrow3             
-00000a36  blocksrow4             
-00000a3d  blocksrow5             
-00000b89  checkermanager         
-0000097f  clr_page               
-00000a4a  cordinatesNext         
-00000a48  cordinatesNow          
-000010a5  decode                 
-000010c1  decodeBlock            
-000010b3  encode                 
-000010cf  encodeBlock            
+00000ac8  blocksrow2             
+00000acf  blocksrow3             
+00000ad6  blocksrow4             
+00000add  blocksrow5             
+00000c29  checkermanager         
+00000a1f  clr_page               
+00000aea  cordinatesNext         
+00000ae8  cordinatesNow          
+00001145  decode                 
+00001161  decodeBlock            
+00001153  encode                 
+0000116f  encodeBlock            
 00000000  g_pfnVectors           
-000014a9  game                   
-0000147e  gamelevel              
-00000711  gameprinter            
-000011d1  gpio_interrupt_init    
-0000099f  int2string             
-000014a9  lifelost               
-000014b5  main                   
-0000098b  new_line               
-0000094f  output_character       
-00000963  output_string          
-00000ac7  paddle                 
-00000a4c  paddleX                
-00000a8d  phsyics                
-0000147c  score                  
+00001549  game                   
+0000151e  gamelevel              
+00000715  gameprinter            
+00001271  gpio_interrupt_init    
+00000a3f  int2string             
+00001549  lifelost               
+00001555  main                   
+00000a2b  new_line               
+000009ef  output_character       
+00000a03  output_string          
+00000b67  paddle                 
+00000aec  paddleX                
+00000b2d  phsyics                
+0000151c  score                  
 00000289  scorestr               
-00001413  simple_read_character  
-00001481  start                  
-0000084f  start_printer          
-000012e1  timer_interrupt_init   
-00001109  uart_init              
-000011ad  uart_interrupt_init    
+000014b3  simple_read_character  
+00001521  start                  
+000008ef  start_printer          
+00001381  timer_interrupt_init   
+000011a9  uart_init              
+0000124d  uart_interrupt_init    
 
 
 GLOBAL SYMBOLS: SORTED BY Symbol Address 
@@ -163,51 +163,51 @@ address   name
 00000200  __STACK_SIZE           
 00000289  scorestr               
 000005f0  ballcolor              
-00000711  gameprinter            
-0000084f  start_printer          
-0000094f  output_character       
-00000963  output_string          
-0000097f  clr_page               
-0000098b  new_line               
-0000099f  int2string             
-00000a28  blocksrow2             
-00000a2f  blocksrow3             
-00000a36  blocksrow4             
-00000a3d  blocksrow5             
-00000a48  cordinatesNow          
-00000a4a  cordinatesNext         
-00000a4c  paddleX                
-00000a8d  phsyics                
-00000ac7  paddle                 
-00000b89  checkermanager         
-000010a5  decode                 
-000010b3  encode                 
-000010c1  decodeBlock            
-000010cf  encodeBlock            
-00001109  uart_init              
-000011ad  uart_interrupt_init    
-000011d1  gpio_interrupt_init    
-00001251  Four_LED_init          
-00001281  Four_BUTTON_init       
-000012b1  RGB_LIGHT_init         
-000012e1  timer_interrupt_init   
-0000136d  UART0_Handler          
-000013ad  Switch_Handler         
-000013fb  Timer_Handler          
-00001413  simple_read_character  
-00001421  DisableT               
-00001439  EnableT                
-00001451  _c_int00_noinit_noargs 
-0000147c  score                  
-0000147e  gamelevel              
-00001481  start                  
-000014a9  ResetISR               
-000014a9  game                   
-000014a9  lifelost               
-000014b5  main                   
-000014bf  _system_pre_init       
-000014c3  C$$EXIT                
-000014c3  abort                  
+00000715  gameprinter            
+000008ef  start_printer          
+000009ef  output_character       
+00000a03  output_string          
+00000a1f  clr_page               
+00000a2b  new_line               
+00000a3f  int2string             
+00000ac8  blocksrow2             
+00000acf  blocksrow3             
+00000ad6  blocksrow4             
+00000add  blocksrow5             
+00000ae8  cordinatesNow          
+00000aea  cordinatesNext         
+00000aec  paddleX                
+00000b2d  phsyics                
+00000b67  paddle                 
+00000c29  checkermanager         
+00001145  decode                 
+00001153  encode                 
+00001161  decodeBlock            
+0000116f  encodeBlock            
+000011a9  uart_init              
+0000124d  uart_interrupt_init    
+00001271  gpio_interrupt_init    
+000012f1  Four_LED_init          
+00001321  Four_BUTTON_init       
+00001351  RGB_LIGHT_init         
+00001381  timer_interrupt_init   
+0000140d  UART0_Handler          
+0000144d  Switch_Handler         
+0000149b  Timer_Handler          
+000014b3  simple_read_character  
+000014c1  DisableT               
+000014d9  EnableT                
+000014f1  _c_int00_noinit_noargs 
+0000151c  score                  
+0000151e  gamelevel              
+00001521  start                  
+00001549  ResetISR               
+00001549  game                   
+00001549  lifelost               
+00001555  main                   
+0000155f  _system_pre_init       
+00001563  C$$EXIT                
+00001563  abort                  
 20000000  __stack                
 20000000  __start___llvm_prf_cnts
 20000000  __stop___llvm_prf_cnts 
