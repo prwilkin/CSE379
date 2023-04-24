@@ -46,6 +46,7 @@ game:
 	PUSH {lr}
 	BL checkermanager
 	BL gameprinter
+	;move cordinates
 	POP {pc}
 
 lifelost:

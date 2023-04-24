@@ -7,16 +7,16 @@
 	.global blocksrow4
 	.global blocksrow5
 
-blocksrow2:			.byte 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01	;init alive with no color	1st 4 bits are for live
+blocksrow2:			.byte 0x21, 0x41, 0x01, 0x01, 0x01, 0x01, 0x01	;init alive with no color	1st 4 bits are for live
 blocksrow3:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color	2nd 4 bits are for color
 blocksrow4:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
 blocksrow5:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
-LeftRight: 			.byte 0x00 		;init to be straight	Left=0 NUll=1 Right=2 | x = LeftRight - 1
+LeftRight: 			.byte 0x01 		;init to be straight	Left=0 NUll=1 Right=2 | x = LeftRight - 1
 UpDown:				.byte 0x01		;init to fall down		Up=2 Down=0			  | y = (UpDown -1) * angle
-angle:				.byte 0x00		;						180=1 60=2 45=1		  | angle = paddle section
+angle:				.byte 0x01		;						180=1 60=2 45=1		  | angle = paddle section
 cordinatesNow:		.half 0x0B06
 cordinatesNext: 	.half 0x0b07
-paddleX:			.byte 0x09
+paddleX:			.half 0x0910
 blocklvls:			.byte 0x01
 **********************************from exterior file**********************************************
 	.global ballcolor	;game_printer_and_sub
@@ -149,11 +149,11 @@ paddleE:
 
 checkermanager:
 	PUSH {lr}
-	LDRB r0, ptr_to_LeftRight
-	LDR r3, [r0]
-	LDRB r0, ptr_to_UpDown
-	LDR r4, [r0]
-	LDRH r2, ptr_to_cordinatesNow
+	LDR r0, ptr_to_LeftRight
+	LDRB r3, [r0]
+	LDR r0, ptr_to_UpDown
+	LDRB r4, [r0]
+	LDR r2, ptr_to_cordinatesNow
 	BL decode
 	LDR r2, ptr_to_angle
 	LDRB r2, [r2]
@@ -214,11 +214,13 @@ checker180UpBlock:
 	B checker180end			;exit <=
 	;											+++++DOWN+++++
 checker180Down:
+	CMP r4, #0		;check for down
+	BNE checker180end
 	CMP r1, #0x10	;bottom row past paddle
 	BEQ lifelost
+checker180DownPaddle:
 	CMP r1, #0x0F	;one above paddle
 	BNE checker180DownBlock
-checker180DownPaddle:
 	LDR r5, ptr_to_paddleX
 	LDRB r2, [r5]		;get left x cord
 	ADD r5, r2, #4		;get right x cord

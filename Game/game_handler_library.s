@@ -40,23 +40,23 @@ UART0_Handler:
 	BL simple_read_character	;retrive character
 
 D:
-	CMP r0, #0x64	;if D set 1
+	CMP r0, #0x64	;if D move 1 right
 	BNE A
-	LDR r0, ptr_to_paddleX
-	LDRB r1, [r0]
-	CMP r1, #0x00
-	BEQ UART0_Handler_end
-	ADD r1, #1
-	STRB r1, [r0]
-
-A:
-	CMP r0, #0x61	;if A set 3
-	BNE UART0_Handler_end
 	LDR r0, ptr_to_paddleX
 	LDRB r1, [r0]
 	CMP r1, #0x14
 	BEQ UART0_Handler_end
-	SUB r1, #1
+	ADD r1, #0x0100
+	STRB r1, [r0]
+
+A:
+	CMP r0, #0x61	;if A move 1 left
+	BNE UART0_Handler_end
+	LDR r0, ptr_to_paddleX
+	LDRB r1, [r0]
+	CMP r1, #0x00
+	BEQ UART0_Handler_end
+	SUB r1, #0x0100
 	STRB r1, [r0]
 
 UART0_Handler_end:
