@@ -74,7 +74,7 @@ UART0_Handler_end:
 	;############################################# UART0_Handler END #############################################
 
 Switch_Handler:
-	PUSH {lr}
+	PUSH {lr}			;r7 has puase status
 	LDR r0, GPIO_PORT_F
 	LDR r1, [r0, #0x41C]
 	ORR r1, #0x10			;mask bit
@@ -169,7 +169,7 @@ DELAY:
 	;############################################# Timer_Handler_RNG END #############################################
 
 Four_LED_subroutine:
-	PUSH {lr}
+	PUSH {lr}			;lives stored in r6
 	CMP r6, #0xF
 	BEQ setlight1
 	BNE Threelives
@@ -232,7 +232,7 @@ end4light:
 	;############################################# Four_LED_subroutine END #############################################
 
 read_from_push_btns:
-	PUSH {lr} ; Store register lr on stack
+	PUSH {lr} ; Store register lr on stack		number of rows returned in r0
 
 	;READ PORT D
 	LDR r0, GPIO_PORT_D		;move memory address of Port D base address to r0
@@ -293,6 +293,7 @@ end:
 	POP {lr}
 	MOV pc, lr
 	;############################################# read_from_push_btns END #############################################
+
 simple_read_character:
 	PUSH {lr}   ; Store register lr on stack
 	LDR r2, UART0
