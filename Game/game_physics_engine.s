@@ -1,4 +1,4 @@
-.data
+	.data
 	.global paddleX
 	.global cordinatesNow
 	.global cordinatesNext
@@ -24,7 +24,7 @@ blocklvls:			.byte 0x01
 	.global score		;game
 	.global gamelevel	;game
 
-.text
+	.text
 	.global phsyics
 	.global paddle
 	.global checkermanager
@@ -222,13 +222,14 @@ checker180DownPaddle:
 	CMP r1, #0x0F	;one above paddle
 	BNE checker180DownBlock
 	LDR r5, ptr_to_paddleX
-	LDRB r2, [r5]		;get left x cord
+	LDRH r2, [r5]		;get left x cord
+	LSR r2, #8
 	ADD r5, r2, #4		;get right x cord
 	CMP r2, r0			;if left of paddle
 	IT GT
 	ADDGT r1, #1
 	BGT checker180end		;exit <=
-	CMP r0, r5			;if right of paddle
+	CMP r5, r0			;if right of paddle
 	IT LT
 	ADDLT r1, #1
 	BLT checker180end		;exit <=
