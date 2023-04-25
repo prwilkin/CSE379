@@ -5,6 +5,9 @@
 
 score:		.half 0x0000
 gamelevel:	.byte 0x01
+**********************************from exterior file**********************************************
+	.global cordinatesNow		;game_physics_engine
+	.global cordinatesNext		;game_physics_engine
 
 .text
 	.global start
@@ -23,6 +26,11 @@ gamelevel:	.byte 0x01
 	.global start_printer		;game_printer_and_sub
 	.global gameprinter			;game_printer_and_sub
 	.global checkermanager		;game_physics_engine
+**************************************************************************************************
+
+**********************************from exterior file**********************************************
+ptr_to_cordinatesNow:	.word cordinatesNow
+ptr_to_cordinatesNext:	.word cordinatesNext
 **************************************************************************************************
 
 start:
@@ -47,6 +55,10 @@ game:
 	BL checkermanager
 	BL gameprinter
 	;move cordinates
+	LDR r1, ptr_to_cordinatesNext
+	LDRH r0, [r1]
+	LDR r1, ptr_to_cordinatesNow
+	STRH r0, [r1]
 	POP {pc}
 
 lifelost:

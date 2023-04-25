@@ -39,25 +39,31 @@ UART0_Handler:
 	STR r1, [r0, #0x044]		;reset interupt flag
 	BL simple_read_character	;retrive character
 
+Q:
+	CMP r0, #0x71	;if q end game
+	BNE D
+	B end
+
 D:
 	CMP r0, #0x64	;if D move 1 right
 	BNE A
 	LDR r0, ptr_to_paddleX
-	LDRB r1, [r0]
-	CMP r1, #0x14
+	LDRH r1, [r0]
+	LSR r2, r1, #8
+	CMP r2, #0x14
 	BEQ UART0_Handler_end
 	ADD r1, #0x0100
-	STRB r1, [r0]
+	STRH r1, [r0]			;TODO NEED debug
 
 A:
 	CMP r0, #0x61	;if A move 1 left
 	BNE UART0_Handler_end
 	LDR r0, ptr_to_paddleX
-	LDRB r1, [r0]
-	CMP r1, #0x00
+	LDRH r1, [r0]
+	CMP r1, #0x0010
 	BEQ UART0_Handler_end
 	SUB r1, #0x0100
-	STRB r1, [r0]
+	STRH r1, [r0]			;TODO NEED debug
 
 UART0_Handler_end:
 	POP {lr}
@@ -147,4 +153,5 @@ EnableT:
 	POP {pc}
 	;############################################# EnableT END #############################################
 
+end:
 .end

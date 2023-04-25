@@ -12,10 +12,10 @@ blocksrow3:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no 
 blocksrow4:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
 blocksrow5:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
 LeftRight: 			.byte 0x01 		;init to be straight	Left=0 NUll=1 Right=2 | x = LeftRight - 1
-UpDown:				.byte 0x01		;init to fall down		Up=2 Down=0			  | y = (UpDown -1) * angle
+UpDown:				.byte 0x00		;init to fall down		Up=2 Down=0			  | y = (UpDown -1) * angle
 angle:				.byte 0x01		;						180=1 60=2 45=1		  | angle = paddle section
 cordinatesNow:		.half 0x0B06
-cordinatesNext: 	.half 0x0b07
+cordinatesNext: 	.half 0x0B08
 paddleX:			.half 0x0910
 blocklvls:			.byte 0x01
 **********************************from exterior file**********************************************

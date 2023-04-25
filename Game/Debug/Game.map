@@ -1,17 +1,17 @@
 ******************************************************************************
                   TI ARM Linker PC v20.2.7                     
 ******************************************************************************
->> Linked Sun Apr 23 17:39:36 2023
+>> Linked Tue Apr 25 12:09:17 2023
 
 OUTPUT FILE NAME:   <Game.out>
-ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 00001635
+ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 00001655
 
 
 MEMORY CONFIGURATION
 
          name            origin    length      used     unused   attr    fill
 ----------------------  --------  ---------  --------  --------  ----  --------
-  FLASH                 00000000   00040000  0000167e  0003e982  R  X
+  FLASH                 00000000   00040000  0000169e  0003e962  R  X
   SRAM                  20000000   00008000  00000200  00007e00  RW X
 
 
@@ -19,9 +19,9 @@ SEGMENT ALLOCATION MAP
 
 run origin  load origin   length   init length attrs members
 ----------  ----------- ---------- ----------- ----- -------
-00000000    00000000    0000167e   0000167e    r-x
+00000000    00000000    0000169e   0000169e    r-x
   00000000    00000000    0000026c   0000026c    r-- .intvecs
-  0000026c    0000026c    00001412   00001412    r-x .text
+  0000026c    0000026c    00001432   00001432    r-x .text
 20000000    20000000    00000200   00000000    rw-
   20000000    20000000    00000200   00000000    rw- .stack
 
@@ -34,18 +34,19 @@ section   page    origin      length       input sections
 .intvecs   0    00000000    0000026c     
                   00000000    0000026c     tm4c123gh6pm_startup_ccs.obj (.intvecs)
 
-.text      0    0000026c    00001412     
+.text      0    0000026c    00001432     
                   0000026c    0000095e     game_printer_and_sub.obj (.text)
                   00000bca    00000002     --HOLE-- [fill = 0]
                   00000bcc    000006c8     game_physics_engine.obj (.text)
                   00001294    00000260     game_init_library.obj (.text)
-                  000014f4    00000104     game_handler_library.obj (.text)
-                  000015f8    0000003c     game.obj (.text)
-                  00001634    0000002c     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.text:_c_int00_noinit_noargs:_c_int00_noinit_noargs)
-                  00001660    0000000c     tm4c123gh6pm_startup_ccs.obj (.text)
-                  0000166c    0000000a     main.obj (.text)
-                  00001676    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
-                  0000167a    00000004                                   : exit.c.obj (.text:abort:abort)
+                  000014f4    0000010e     game_handler_library.obj (.text)
+                  00001602    00000002     --HOLE-- [fill = 0]
+                  00001604    00000050     game.obj (.text)
+                  00001654    0000002c     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.text:_c_int00_noinit_noargs:_c_int00_noinit_noargs)
+                  00001680    0000000c     tm4c123gh6pm_startup_ccs.obj (.text)
+                  0000168c    0000000a     main.obj (.text)
+                  00001696    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
+                  0000169a    00000004                                   : exit.c.obj (.text:abort:abort)
 
 .cinit     0    00000000    00000000     UNINITIALIZED
 
@@ -68,11 +69,11 @@ MODULE SUMMARY
        game_physics_engine.obj        1736   0         0      
        tm4c123gh6pm_startup_ccs.obj   12     620       0      
        game_init_library.obj          608    0         0      
-       game_handler_library.obj       260    0         0      
-       game.obj                       60     0         0      
+       game_handler_library.obj       270    0         0      
+       game.obj                       80     0         0      
        main.obj                       10     0         0      
     +--+------------------------------+------+---------+---------+
-       Total:                         5084   620       0      
+       Total:                         5114   620       0      
                                                               
     D:\Program Files\ccs\tools\compiler\ti-cgt-arm_20.2.7.LTS\lib\rtsv7M4_T_le_v4SPD16_eabi.lib
        boot_cortex_m.c.obj            44     0         0      
@@ -83,22 +84,22 @@ MODULE SUMMARY
                                                               
        Stack:                         0      0         512    
     +--+------------------------------+------+---------+---------+
-       Grand Total:                   5136   620       512    
+       Grand Total:                   5166   620       512    
 
 
 GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
 
 address   name                   
 -------   ----                   
-0000167b  C$$EXIT                
-000015cd  DisableT               
-000015e5  EnableT                
+0000169b  C$$EXIT                
+000015d7  DisableT               
+000015ef  EnableT                
 00001429  Four_BUTTON_init       
 000013f9  Four_LED_init          
 00001459  RGB_LIGHT_init         
-00001661  ResetISR               
-00001555  Switch_Handler         
-000015a3  Timer_Handler          
+00001681  ResetISR               
+0000155f  Switch_Handler         
+000015ad  Timer_Handler          
 00001515  UART0_Handler          
 20000200  __STACK_END            
 00000200  __STACK_SIZE           
@@ -113,9 +114,9 @@ UNDEFED   __mpu_init
 20000000  __stack                
 20000000  __start___llvm_prf_cnts
 20000000  __stop___llvm_prf_cnts 
-00001635  _c_int00_noinit_noargs 
-00001677  _system_pre_init       
-0000167b  abort                  
+00001655  _c_int00_noinit_noargs 
+00001697  _system_pre_init       
+0000169b  abort                  
 000005f0  ballcolor              
 ffffffff  binit                  
 00000bcc  blocksrow2             
@@ -131,23 +132,23 @@ ffffffff  binit
 0000125b  encode                 
 00001277  encodeBlock            
 00000000  g_pfnVectors           
-00001629  game                   
-000015fa  gamelevel              
+0000163d  game                   
+00001606  gamelevel              
 00000719  gameprinter            
 00001379  gpio_interrupt_init    
 00000b41  int2string             
-00001635  lifelost               
-0000166d  main                   
+00001655  lifelost               
+0000168d  main                   
 00000b2d  new_line               
 00000af1  output_character       
 00000b05  output_string          
 00000c6b  paddle                 
 00000bf0  paddleX                
 00000c31  phsyics                
-000015f8  score                  
+00001604  score                  
 00000289  scorestr               
-000015bf  simple_read_character  
-000015fd  start                  
+000015c9  simple_read_character  
+00001611  start                  
 000009f1  start_printer          
 00001489  timer_interrupt_init   
 000012b1  uart_init              
@@ -192,22 +193,22 @@ address   name
 00001459  RGB_LIGHT_init         
 00001489  timer_interrupt_init   
 00001515  UART0_Handler          
-00001555  Switch_Handler         
-000015a3  Timer_Handler          
-000015bf  simple_read_character  
-000015cd  DisableT               
-000015e5  EnableT                
-000015f8  score                  
-000015fa  gamelevel              
-000015fd  start                  
-00001629  game                   
-00001635  _c_int00_noinit_noargs 
-00001635  lifelost               
-00001661  ResetISR               
-0000166d  main                   
-00001677  _system_pre_init       
-0000167b  C$$EXIT                
-0000167b  abort                  
+0000155f  Switch_Handler         
+000015ad  Timer_Handler          
+000015c9  simple_read_character  
+000015d7  DisableT               
+000015ef  EnableT                
+00001604  score                  
+00001606  gamelevel              
+00001611  start                  
+0000163d  game                   
+00001655  _c_int00_noinit_noargs 
+00001655  lifelost               
+00001681  ResetISR               
+0000168d  main                   
+00001697  _system_pre_init       
+0000169b  C$$EXIT                
+0000169b  abort                  
 20000000  __stack                
 20000000  __start___llvm_prf_cnts
 20000000  __stop___llvm_prf_cnts 
