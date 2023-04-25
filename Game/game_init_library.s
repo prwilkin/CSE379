@@ -9,6 +9,7 @@
 	.global gpio_interrupt_init
 	.global Four_LED_init
 	.global Four_BUTTON_init
+	.global timer_interrupt_init_RNG
 	.global RGB_LIGHT_init
 	.global timer_interrupt_init
 **********************************from exterior file**********************************************
@@ -286,5 +287,58 @@ timer_interrupt_init:
 
 	POP {pc}
 	;############################################# timer_interrupt_init END #############################################
+
+timer_interrupt_init_RNG:
+	PUSH {lr}
+	;Enable Clock for Timer (Tx) where x is timer number
+	MOV r0, #0xE000				;move memory address of Clock base address to r0
+	MOVT r0, #0x400F
+	LDR r1, [r0, #0x604]		;load content of r0 with offset with 0x604 to r1
+	ORR r1, #0x2				;set bit 1 to allow enable Clock for Timer1
+	STR r1, [r0, #0x604]		;store r1 into r0 to allow Clock to be enable for Timer0
+
+	;Disable Timer
+	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
+	BIC r1, #0x1				;clear bit 0 to disable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer0
+
+	;Setting up Timer for 32-Bit Mode
+	LDR r1, [r0, #0x000]		;load content of r0 with offset with 0x000 to r1
+	BIC r1, #0x000				;Clear bit 0,1,2 to configure the Timer as a single 32-bit timer
+	STR r1, [r0, #0x000]		;store r1 into r0 to set Timer0 as a single 32-bit timer
+
+	;Put Timer in Periodic Mode
+	LDR r1, [r0, #0x004]		;load content of r0 with offset with 0x004 to r1
+	ORR r1, #0x2				;Write 2 to TAMR to change the mode of Timer0 to Periodic Mode
+	STR r1, [r0, #0x004]		;store r1 into r0 to change Timer as Periodic Mode
+
+	;Setup Interval Period
+	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
+	MOV r1, #0x186A			;set r1 as 6250 to make the Timer interrupt to start at 1 millisecond
+	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
+
+	;Setup Timer to Interrupt Processor
+	LDR r1, [r0, #0x018]		;load content of r0 with offset with 0x018 to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer to Interrupt Processor
+	STR r1, [r0, #0x018]		;store r1 into r0 to enable Timer to Interrupt Processor
+
+	;Configure Processor to Allow Timer to Interrupt Processor
+	LDR r0, EN0					;move memory address of EN0 base address to r0
+	LDR r1, [r0, #0x100]		;load content of r0 with offset of 0x100 to r1
+	ORR r1, #0x200000			;set bit 19 to Timer0 to Interrupt Processor
+	STR r1, [r0, #0x100]		;store r1 into r0 to allow Timer0 to Interrupt Processor
+
+	;Enable Timer
+	MOV r0, #0x1000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
+
+	POP {lr}
+	MOV pc, lr
+	;############################################# timer_interrupt_init_RNG END #############################################
 
 .end
