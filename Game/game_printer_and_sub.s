@@ -1,4 +1,4 @@
-.data
+	.data
 ;this file contains relevant subs and the printer function
 	.global ballcolor
 	.global scorestr
@@ -56,7 +56,7 @@ bluetx:		.string 27,"[34m",0x00	;blue fg
 yellowtx:	.string 27,"[33m",0x00	;yellow fg
 defaulttx:	.string 27,"[39m",0x00	;default fg
 
-.text
+	.text
 ;printer and subroutines: (in order of apperance in file)
 ;	gameprint, printer assist, printer assist block row, ballPrint, spacePrint, blockPrint, color,
 ;	 output charcater, output string, clear page, new line, & int2string
