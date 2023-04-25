@@ -44,6 +44,7 @@ extern void _c_int00(void);
 extern void UART0_Handler(void);
 extern void Switch_Handler(void);
 extern void Timer_Handler(void);
+extern void Timer_Handler_RNG(void);
 
 //*****************************************************************************
 //
@@ -107,7 +108,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // Watchdog timer
     Timer_Handler,                          // Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
-    IntDefaultHandler,                      // Timer 1 subtimer A
+    Timer_Handler_RNG,                      // Timer 1 subtimer A
     IntDefaultHandler,                      // Timer 1 subtimer B
     IntDefaultHandler,                      // Timer 2 subtimer A
     IntDefaultHandler,                      // Timer 2 subtimer B
