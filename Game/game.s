@@ -21,6 +21,7 @@ gamelevel:	.byte 0x01
 	.global Four_BUTTON_init		;game_init_library
 	.global RGB_LIGHT_init			;game_init_library
 	.global timer_interrupt_init	;game_init_library
+	.global timer_interrupt_init_RNG
 	.global DisableT		;game_handler_library
 	.global EnableT			;game_handler_library
 	.global start_printer		;game_printer_and_sub
@@ -41,10 +42,14 @@ start:
 	BL Four_BUTTON_init
 	BL RGB_LIGHT_init
 	BL timer_interrupt_init
+	;BL timer_interrupt_init_RNG
 	BL DisableT			;pause timer until game actually starts
 	BL start_printer
 	;BL subroutine for alice board press
 	BL EnableT
+	MOV r7, #0
+	MOV r6, #0xF
+	MOV r9, #0
 	B wait
 
 wait:
