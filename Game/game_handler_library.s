@@ -1,21 +1,26 @@
 	.data
 ;this file is for interrupt hanlders only
 **********************************from exterior file**********************************************
-	.global paddleX
+	.global paddleX		;game_physics_engine
+	.global ballcolor	;game_printer_and_sub
+**************************************************************************************************
+
 	.text
 ;handler subroutines: (in order of apperance in file)
-;	uart, switch, timer, simple read char, disable timer, & enable timer
+;	uart, rgbLED, switch, read push button, four led, timer, timer rng,
+;	simple read char, disable timer, & enable timer
 	.global UART0_Handler
+	.global rgbLED
 	.global Switch_Handler
-	.global Timer_Handler
-	.global simple_read_character
-	.global Four_LED_subroutine
-	.global Timer_Handler_RNG
 	.global read_from_push_btns
+	.global Four_LED_subroutine
+	.global Timer_Handler
+	.global Timer_Handler_RNG
+	.global simple_read_character
 	.global DisableT
 	.global EnableT
 **********************************from exterior file**********************************************
-	.global game
+	.global game		;game
 **************************************************************************************************
 SYSCTL:			.word	0x400FE000	; Base address for System Control
 GPIO_PORT_A:	.word	0x40004000	; Base address for GPIO Port A
@@ -29,8 +34,9 @@ GPIODEN:		.equ	0x51C		; Offset for GPIO Digital Enable Register
 GPIODATA:		.equ	0x3FC		; Offset for GPIO Data
 UART0:			.word	0x4000C000	; Base address for UART0
 U0FR: 			.equ 	0x18		; UART0 Flag Register
-**************************************************************************************************
-ptr_to_paddleX: .word paddleX
+**********************************from exterior file**********************************************
+ptr_to_paddleX: 		.word paddleX
+ptr_to_ballcolor:		.word ballcolor
 **************************************************************************************************
 
 ;UART0_HANLDER SUBROUTINE
@@ -56,7 +62,7 @@ D:
 	CMP r2, #0x14
 	BEQ UART0_Handler_end
 	ADD r1, #0x0100
-	STRH r1, [r0]			;TODO NEED debug
+	STRH r1, [r0]
 
 A:
 	CMP r0, #0x61	;if A move 1 left
@@ -66,12 +72,21 @@ A:
 	CMP r1, #0x0010
 	BEQ UART0_Handler_end
 	SUB r1, #0x0100
-	STRH r1, [r0]			;TODO NEED debug
+	STRH r1, [r0]
 
 UART0_Handler_end:
 	POP {lr}
 	BX lr       	; Return
 	;############################################# UART0_Handler END #############################################
+
+rgbLED:
+	PUSH {lr}
+	LDR r0, ptr_to_ballcolor
+	LDRB r0, [r0]
+	LDR r1, GPIO_PORT_F
+	STR r0, [r1, #GPIODATA]
+	POP {pc}
+	;############################################# rgbLED END #############################################
 
 Switch_Handler:
 	PUSH {lr}			;r7 has puase status
@@ -122,51 +137,67 @@ endswitch:
 	BX lr       	; Return
 	;############################################# Switch_Handler END #############################################
 
-Timer_Handler:
-	PUSH {lr}
-
-	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
-	MOVT r0, #0x4003
-	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
-	ORR r1, #0x1				;set bit 0 to clear Timer0 interrupt so Timer0 interrupt can be interrupted again
-	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer0 interrupt can be itnerrupted again
-	BL game
+read_from_push_btns:
+	PUSH {lr} ; Store register lr on stack		number of rows returned in r0
+	;READ PORT D
+	LDR r0, GPIO_PORT_D		;move memory address of Port D base address to r0
+read_from_push_btns_loop:
+	LDR r1, [r0, #GPIODATA]		;load r0 with to offset of #GPIODATA to r1
+	MOV r2, r1					;copy r1 to r2
+	MOV r3, #0x0				;set r3 as 0x0
+	AND r2, #0x1				;bit masking
+	CMP r2, #0x1				;compare r2 with 0x1
+	BEQ equal1					;branch if r2 does equal to 0x1
+	BNE notequal1				;branch if r2 does not equal to 0x1
+check1:
+	MOV r2, r1					;copy r1 to r2
+	AND r2, #0x2				;bit masking
+	CMP r2, #0x2				;compare r2 with 0x2
+	BEQ equal2					;branch if r2 does equal to 0x2
+	BNE notequal2				;branch if r2 does not equal to 0x2
+check2:
+	MOV r2, r1					;copy r1 to r2
+	AND r2, #0x4				;bit masking
+	CMP r2, #0x4				;compare r2	with 0x4
+	BEQ equal3					;branch if r2 does equal to 0x4
+	BNE notequal3				;branch if r2 does not equal to 0x4
+check3:
+	MOV r2, r1					;copy r1 to r2
+	AND r2, #0x8				;bit masking
+	CMP r2, #0x8				;compare r2 wih 0x8
+	BEQ equal4					;branch if r2 does equal to 0x8
+	BNE notequal4				;branch if r2 does not equal to 0x8
+equal1:
+	ORR r3, #1					;set bit 0 in r3
+	B end						;branch to end
+notequal1:
+	ORR r3, #0x0				;does not do anything to the bit in r3
+	B check1					;branch back to check the second button
+equal2:
+	ORR r3, #2					;set bit 1 in r3
+	B end						;branch to end
+notequal2:
+	ORR r3, #0x0				;does not do anything to the bit in r3
+	B check2					;branch back to check the third button
+equal3:
+	ORR r3, #3					;set bit 2 in r3
+	B end						;branch to end
+notequal3:
+	ORR r3, #0x0				;does not do anything to the bit in r3
+	B check3					;branch back to check the fourth button
+equal4:
+	ORR r3, #4					;set bit 3 in r3
+	B end						;branch to end
+notequal4:
+	ORR r3, #0x0				;does not do anything to the bit in r3
+	B read_from_push_btns_loop	;branch to read_from_push_btns_loop to keep checking the 4 button again
+end:
+	STR r3, [r0, #GPIODATA]		;store r3 to r0 with the offset GPIODATA
+	MOV r0, r3
 
 	POP {lr}
-	BX lr       	; Return
-	;############################################# Timer_Handler END #############################################
-
-Timer_Handler_RNG:
-	PUSH {lr}					;random number goes in r9
-	PUSH {r10,r6,r8}
-
-	MOV r10, #5
-
-	MOV r0, #0x0000				;move memory address of Timer1 base address to r0
-	MOVT r0, #0x4003
-	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
-	ORR r1, #0x1				;set bit 0 to clear Timer1 interrupt so Timer1 interrupt can be interrupted again
-	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer1 interrupt can be interrupted again
-
-AGAIN:
-	MOV r6, #0xFFFF
-DELAY:
-    SUBS r6, r6, #1
-    BNE DELAY
-	LDR r1, [r0, #0x050]
-	MOV r8, r9
-	SDIV r2, r1, r10
-	MUL r3, r2, r10
-	SUB r9, r1, r3
-	CMP r9, r8
-	BEQ AGAIN
-
-
-
-	POP {r10,r6,r8}
-	POP {lr}
-	BX lr       	; Return
-	;############################################# Timer_Handler_RNG END #############################################
+	MOV pc, lr
+	;############################################# read_from_push_btns END #############################################
 
 Four_LED_subroutine:
 	PUSH {lr}			;lives stored in r6
@@ -231,68 +262,49 @@ end4light:
 	MOV pc, lr
 	;############################################# Four_LED_subroutine END #############################################
 
-read_from_push_btns:
-	PUSH {lr} ; Store register lr on stack		number of rows returned in r0
+Timer_Handler:
+	PUSH {lr}
 
-	;READ PORT D
-	LDR r0, GPIO_PORT_D		;move memory address of Port D base address to r0
-read_from_push_btns_loop:
-	LDR r1, [r0, #GPIODATA]		;load r0 with to offset of #GPIODATA to r1
-	MOV r2, r1					;copy r1 to r2
-	MOV r3, #0x0				;set r3 as 0x0
-	AND r2, #0x1				;bit masking
-	CMP r2, #0x1				;compare r2 with 0x1
-	BEQ equal1					;branch if r2 does equal to 0x1
-	BNE notequal1				;branch if r2 does not equal to 0x1
-check1:
-	MOV r2, r1					;copy r1 to r2
-	AND r2, #0x2				;bit masking
-	CMP r2, #0x2				;compare r2 with 0x2
-	BEQ equal2					;branch if r2 does equal to 0x2
-	BNE notequal2				;branch if r2 does not equal to 0x2
-check2:
-	MOV r2, r1					;copy r1 to r2
-	AND r2, #0x4				;bit masking
-	CMP r2, #0x4				;compare r2	with 0x4
-	BEQ equal3					;branch if r2 does equal to 0x4
-	BNE notequal3				;branch if r2 does not equal to 0x4
-check3:
-	MOV r2, r1					;copy r1 to r2
-	AND r2, #0x8				;bit masking
-	CMP r2, #0x8				;compare r2 wih 0x8
-	BEQ equal4					;branch if r2 does equal to 0x8
-	BNE notequal4				;branch if r2 does not equal to 0x8
-equal1:
-	ORR r3, #1					;set bit 0 in r3
-	B end						;branch to end
-notequal1:
-	ORR r3, #0x0				;does not do anything to the bit in r3
-	B check1					;branch back to check the second button
-equal2:
-	ORR r3, #2					;set bit 1 in r3
-	B end						;branch to end
-notequal2:
-	ORR r3, #0x0				;does not do anything to the bit in r3
-	B check2					;branch back to check the third button
-equal3:
-	ORR r3, #3					;set bit 2 in r3
-	B end						;branch to end
-notequal3:
-	ORR r3, #0x0				;does not do anything to the bit in r3
-	B check3					;branch back to check the fourth button
-equal4:
-	ORR r3, #4					;set bit 3 in r3
-	B end						;branch to end
-notequal4:
-	ORR r3, #0x0				;does not do anything to the bit in r3
-	B read_from_push_btns_loop	;branch to read_from_push_btns_loop to keep checking the 4 button again
-end:
-	STR r3, [r0, #GPIODATA]		;store r3 to r0 with the offset GPIODATA
-	MOV r0, r3
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
+	ORR r1, #0x1				;set bit 0 to clear Timer0 interrupt so Timer0 interrupt can be interrupted again
+	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer0 interrupt can be itnerrupted again
+	BL game
 
 	POP {lr}
-	MOV pc, lr
-	;############################################# read_from_push_btns END #############################################
+	BX lr       	; Return
+	;############################################# Timer_Handler END #############################################
+
+Timer_Handler_RNG:
+	PUSH {lr}					;random number goes in r9
+	PUSH {r10,r6,r8}
+
+	MOV r10, #5
+
+	MOV r0, #0x0000				;move memory address of Timer1 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
+	ORR r1, #0x1				;set bit 0 to clear Timer1 interrupt so Timer1 interrupt can be interrupted again
+	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer1 interrupt can be interrupted again
+
+AGAIN:
+	MOV r6, #0xFFFF
+DELAY:
+    SUBS r6, r6, #1
+    BNE DELAY
+	LDR r1, [r0, #0x050]
+	MOV r8, r9
+	SDIV r2, r1, r10
+	MUL r3, r2, r10
+	SUB r9, r1, r3
+	CMP r9, r8
+	BEQ AGAIN
+
+	POP {r10,r6,r8}
+	POP {lr}
+	BX lr       	; Return
+	;############################################# Timer_Handler_RNG END #############################################
 
 simple_read_character:
 	PUSH {lr}   ; Store register lr on stack
@@ -327,4 +339,7 @@ EnableT:
 	;############################################# EnableT END #############################################
 
 end_game:
+	MOV r0, #0
+	LDR r1, SYSCTL
+	STR r0, [r1, #GPIODATA]
 .end

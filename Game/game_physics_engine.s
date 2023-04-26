@@ -7,16 +7,16 @@
 	.global blocksrow4
 	.global blocksrow5
 
-blocksrow2:			.byte 0x21, 0x41, 0x01, 0x01, 0x01, 0x01, 0x01	;init alive with no color	1st 4 bits are for live
+blocksrow2:			.byte 0x21, 0x41, 0x61, 0x21, 0x81, 0xA1, 0x61	;init alive with no color	1st 4 bits are for live
 blocksrow3:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color	2nd 4 bits are for color
 blocksrow4:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
 blocksrow5:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
 LeftRight: 			.byte 0x01 		;init to be straight	Left=0 NUll=1 Right=2 | x = LeftRight - 1
 UpDown:				.byte 0x00		;init to fall down		Up=2 Down=0			  | y = (UpDown -1) * angle
 angle:				.byte 0x01		;						180=1 60=2 45=1		  | angle = paddle section
-cordinatesNow:		.half 0x0B06
-cordinatesNext: 	.half 0x0B08
-paddleX:			.half 0x0910
+cordinatesNow:		.half 0x0A06
+cordinatesNext: 	.half 0x0A07
+paddleX:			.half 0x0810
 blocklvls:			.byte 0x01
 **********************************from exterior file**********************************************
 	.global ballcolor	;game_printer_and_sub
@@ -35,6 +35,7 @@ blocklvls:			.byte 0x01
 **********************************from exterior file**********************************************
 	.global int2string	;game_printer_and_sub
 	.global lifelost	;game
+	.global rgbLED		;game_handler_library
 **************************************************************************************************
 ptr_to_blocksrow2:		.word blocksrow2
 ptr_to_blocksrow3:		.word blocksrow3
@@ -77,7 +78,7 @@ phsyics:
 	;############################################# phsyics END #############################################
 
 paddle:
-	PUSH {lr}	;takes r0 & r1 as x & y, r2 as left paddle, r3 as LeftRight, r4 as UpDown, r5 as right paddle
+	;takes r0 & r1 as x & y, r2 as left paddle, r3 as LeftRight, r4 as UpDown, r5 as right paddle
 paddle1:
 	CMP r2, r0		;is x at paddle 1
 	BNE paddle2
@@ -90,6 +91,7 @@ paddle1:
 	MOV r5, #1		;set angle to 45/180
 	LDR r2, ptr_to_angle
 	STRB r5, [r2]	;store angle
+	B paddleE				;exit <=
 paddle2:
 	ADD r2, #1
 	CMP r2, r0		;is x at paddle 2
@@ -103,6 +105,7 @@ paddle2:
 	MOV r5, #2		;set angle to 60
 	LDR r2, ptr_to_angle
 	STRB r5, [r2]	;store angle
+	B paddleE				;exit <=
 paddle3:
 	ADD r2, #1
 	CMP r2, r0		;is x at paddle 3
@@ -116,6 +119,7 @@ paddle3:
 	MOV r5, #1		;set angle to 45/180
 	LDR r2, ptr_to_angle
 	STRB r5, [r2]	;store angle
+	B paddleE				;exit <=
 paddle4:
 	ADD r2, #1
 	CMP r2, r0		;is x at paddle 4
@@ -129,6 +133,7 @@ paddle4:
 	MOV r5, #2		;set angle to 60
 	LDR r2, ptr_to_angle
 	STRB r5, [r2]	;store 60
+	B paddleE				;exit <=
 paddle5:
 	ADD r2, #1
 	CMP r2, r0		;is x at paddle 5
@@ -328,9 +333,9 @@ checker45UpLeftBlock:
 	PUSH {r0, r1}
 	BL blockCheck45
 	POP {r0, r1}
-	SUB r3, #1		;set LeftRight modified
-	SUB r4, #1		;set UpDown modifed
-	SUB r0, r3		;move x
+	;SUB r3, #1		;set LeftRight modified
+	;SUB r4, #1		;set UpDown modifed
+	ADD r0, r3		;move x
 	SUB r1, r4		;move y
 	ADD r3, #1		;reset LeftRight
 	ADD r4, #1		;reset UpDown
@@ -393,9 +398,9 @@ checker45UpRightBlock:
 	PUSH {r0, r1}
 	BL blockCheck45
 	POP {r0, r1}
-	SUB r3, #1		;set LeftRight modified
-	SUB r4, #1		;set UpDown modifed
-	SUB r0, r3		;move x
+	;SUB r3, #1		;set LeftRight modified
+	;SUB r4, #1		;set UpDown modifed
+	ADD r0, r3		;move x
 	SUB r1, r4		;move y
 	ADD r3, #1		;reset LeftRight
 	ADD r4, #1		;reset UpDown
@@ -403,7 +408,7 @@ checker45UpRightBlock:
 checker45UpRightWall:
 	CMP r0, #0x14
 	ITTTT EQ
-	ADDEQ r0, #1	;move 1 left
+	SUBEQ r0, #1	;move 1 left
 	SUBEQ r1, #1	;move 1 up
 	MOVEQ r3, #0	;set LeftRight to left
 	BEQ checker45end		;exit <=
@@ -439,7 +444,7 @@ checker45DownLeftBlock:
 	BGE checker45DownLeftWall
 	CMP r1, #0x00	;on row 0
 	ITT EQ
-	SUBEQ r0, #1	;move 1 left
+	ADDEQ r0, #1	;move 1 left
 	ADDEQ r1, #1	;move 1 down
 	BEQ checker180end		;exit <=
 	;have to check if in block area
@@ -469,9 +474,9 @@ checker45DownLeftBlock:
 	PUSH {r0, r1}
 	BL blockCheck45
 	POP {r0, r1}
-	SUB r3, #1		;set LeftRight modified
-	SUB r4, #1		;set UpDown modifed
-	SUB r0, r3		;move x
+	;SUB r3, #1		;set LeftRight modified
+	;SUB r4, #1		;set UpDown modifed
+	ADD r0, r3		;move x
 	SUB r1, r4		;move y
 	ADD r3, #1		;reset LeftRight
 	ADD r4, #1		;reset UpDown
@@ -495,20 +500,18 @@ checker45DownRightLifeLost:
 	BEQ lifelost
 checker45DownRightPaddle:
 	CMP r1, #0x0F
-	BNE checker45DownLeftBlock
+	BNE checker45DownRightBlock
 	LDR r5, ptr_to_paddleX
 	LDRB r2, [r5]		;get left x cord
 	ADD r5, r2, #4		;get right x cord
 	CMP r2, r0 		;if left of paddle
-	BGT paddle
+	BGT checker45DownRightWall
 	CMP r5, r0		;if right of paddle
-	BLT paddle
-	ADD r0, #1		;move 1 right
-	ADD r1, #1		;move 1 down
+	BLT checker45DownRightWall
 	B checker45end			;exit <=
 checker45DownRightBlock:
 	CMP r1, #0x06	;if on row 6 to 16 check walls
-	BGE checker45DownLeftWall
+	BGE checker45DownRightWall
 	CMP r1, #0x00	;on row 0
 	ITT EQ
 	ADDEQ r0, #1	;move 1 right
@@ -534,9 +537,9 @@ checker45DownRightBlock:
 	PUSH {r0, r1}
 	BL blockCheck45
 	POP {r0, r1}
-	SUB r3, #1		;set LeftRight modified
-	SUB r4, #1		;set UpDown modifed
-	SUB r0, r3		;move x
+	;SUB r3, #1		;set LeftRight modified
+	;SUB r4, #1		;set UpDown modifed
+	ADD r0, r3		;move x
 	SUB r1, r4		;move y
 	ADD r3, #1		;reset LeftRight
 	ADD r4, #1		;reset UpDown
@@ -575,12 +578,12 @@ blockCheck45:
 	;check for left
 	POP {r3, r4}
 	ADD r1, r4		;reset y
-	SUB r0, r3		;adjust x
+	ADD r0, r3		;adjust x
 	PUSH {r3, r4}
 	BL getBlockLive
 	CMP r4, #1
-	BLEQ blockHit
 	BNE blockCheck45noLeftRight
+	BLEQ blockHit
 	POP {r3, r4}
 	ITTT EQ			;reset cordinates
 	ADDEQ r1, r4
@@ -588,12 +591,12 @@ blockCheck45:
 	ADDEQ r0, r3
 	CMP r3, #1
 	ITE EQ		;if LeftRight is right then
-	MOVEQ r3, #0	;set left
-	MOVNE r3, #2	;else set right
+	MOVEQ r3, #-1	;set left
+	MOVNE r3, #1	;else set right
 	CMP r4, #1
 	ITE EQ		;if UpDown is Up
-	MOVEQ r4, #0	;set down
-	MOVNE r4, #2	;else set Up
+	MOVEQ r4, #-1	;set down
+	MOVNE r4, #1	;else set Up
 	POP {pc}
 blockCheck45noLeftRight:
 	POP {r3, r4}
@@ -628,12 +631,12 @@ blockCheck45cornerBlock:
 	POPEQ {pc}
 	CMP r3, #1	;else set UpDown & LeftRight
 	ITE EQ		;if LeftRight is right then
-	MOVEQ r3, #0	;set left
-	MOVNE r3, #2	;else set right
+	MOVEQ r3, #-1	;set left
+	MOVNE r3, #1	;else set right
 	CMP r4, #1
 	ITE EQ		;if UpDown is Up
-	MOVEQ r4, #0	;set down
-	MOVNE r4, #2	;else set Up
+	MOVEQ r4, #-1	;set down
+	MOVNE r4, #1	;else set Up
 	POP {pc}
 	;############################################# blockCheck45 END #############################################
 
@@ -693,9 +696,10 @@ gotBlock:
 
 blockHit:
 	PUSH {lr}
+	PUSH {r0, r1, r4}
 	LDR r4, ptr_to_ballcolor
 	STRB r3, [r4]	;update ball color
-	;BL rgb light
+	BL rgbLED
 	MOV r4, #0
 	MOV r3, #0
 	BL encodeBlock	;kill block
@@ -705,11 +709,10 @@ blockHit:
 	LDRB r3, [r4]
 	ADD r2, r3
 	STRH r2, [r4]
-	PUSH {r0, r1}
 	MOV r0, r2
 	LDR r1, ptr_to_scorestr
 	BL int2string
-	POP {r0, r1}
+	POP {r0, r1, r4}
 	POP {pc}
 	;############################################# blockHit END #############################################
 
@@ -790,7 +793,7 @@ encodeBlock:
 	;takes r5 as block# for offset
 	LSL r3, #4		;store color
 	ORR r3, r4		;insert live status
-	STRB r3, [r2]	;store in memory
+	STRB r3, [r2, r5]	;store in memory
 
 	POP {pc}
 	;############################################# encodeBlock END #############################################

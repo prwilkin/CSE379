@@ -132,7 +132,7 @@ ptr_to_blocksrow5:		.word blocksrow5
 
 gameprinter:
 	PUSH {lr}
-
+	BL clr_page
 	LDR r0, ptr_to_scorePrompt
 	BL output_string			;print score prompt
 	LDR r0, ptr_to_scorestr
@@ -249,7 +249,7 @@ printer_assist_block_row:
 	MOV r0, #0x7C
 	BL output_character	;print left wall
 	POP {r1, r2}
-	LDRB r1, [r1]	;load cordinates
+	LDRH r1, [r1]	;load cordinates
 	LDR r6, ptr_to_cordinatesNext
 	LDRH r6, [r6]
 	MOV r5, #0		;set block offset and counter
@@ -263,20 +263,11 @@ printer_assist_row:
 	ADDEQ r1, #0x0300	;move 3 right
 	BLEQ blockPrint
 	BEQ printer_assist_row	;restart loop
-	CMP r1, r6			;block dead check for ball
-	ITE EQ				;if alive
-	BLEQ ballPrint		;then print ball
-	BLNE spacePrint		;else print space
+	BL ballspace
 	ADD r1, #0x0100		;move 1 right
-	CMP r1, r6			;check for ball
-	ITE EQ				;if alive
-	BLEQ ballPrint		;then print ball
-	BLNE spacePrint		;else print space
+	BL ballspace
 	ADD r1, #0x0100		;move 1 right
-	CMP r1, r6			;check for ball
-	ITE EQ				;if alive
-	BLEQ ballPrint		;then print ball
-	BLNE spacePrint		;else print space
+	BL ballspace
 	ADD r1, #0x0100		;move 1 right
 	B printer_assist_row
 printer_assist_block_row_end:
@@ -298,6 +289,12 @@ paddlePrint:
 
 	POP {r1, r2, pc}
 	;############################################# paddlePrint END #############################################
+
+ballspace:
+	CMP r1, r6			;check for ball
+	ITE EQ				;if alive
+	BEQ ballPrint		;then print ball
+	BNE spacePrint		;else print space
 
 ballPrint:
 	PUSH {r1, r2, lr}

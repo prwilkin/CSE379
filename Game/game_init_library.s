@@ -1,19 +1,17 @@
-.data
+	.data
 ;this file will only contain subroutines to initalize the hardware
-.text
+	.text
 ;init subroutines: (in order of apperance in file)
-;	uart, uart interrupt, gpio interrupt, 4 led, 4 button, rgb light, & timer interrupt
+;	uart, uart interrupt, gpio interrupt, 4 led, 4 button, rgb light, timer interrupt & timer interrupt rng
 
 	.global uart_init
 	.global uart_interrupt_init
 	.global gpio_interrupt_init
 	.global Four_LED_init
 	.global Four_BUTTON_init
-	.global timer_interrupt_init_RNG
 	.global RGB_LIGHT_init
 	.global timer_interrupt_init
-**********************************from exterior file**********************************************
-
+	.global timer_interrupt_init_RNG
 **************************************************************************************************
 SYSCTL:			.word	0x400FE000	; Base address for System Control
 GPIO_PORT_A:	.word	0x40004000	; Base address for GPIO Port A
@@ -28,7 +26,6 @@ GPIODATA:		.equ	0x3FC		; Offset for GPIO Data
 UART0:			.word	0x4000C000	; Base address for UART0
 U0FR: 			.equ 	0x18		; UART0 Flag Register
 **************************************************************************************************
-
 
 uart_init:
 	PUSH {lr}  ; Store register lr on stack
@@ -229,7 +226,7 @@ RGB_LIGHT_init:
 
 	;Enable GPIO Pin 1 - 3 for Port F to to Digital
 	LDR r1, [r0, #0x51C]		;load content of r0 wuth offset of 0x51C to r1
-	ORR r1, #0xA				;bitwise manipluation to set bit 1 - 3 as 1 for Port F Pin 1 - 3
+	ORR r1, #0xE				;bitwise manipluation to set bit 1 - 3 as 1 for Port F Pin 1 - 3
 	STR r1, [r0, #0x51C]		;store r1 to r0 with offset of 0x51C enabling Port F Pin 1 - 3 as Digital Pin
 
 	POP {pc}
