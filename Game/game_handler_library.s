@@ -140,7 +140,7 @@ endswitch:
 	;READ_FROM_PUSH_BTNS_SUBROUTINE
 read_from_push_btns:	
 	PUSH {lr} ; Store register lr on stack	
-	;lives stored in r6
+	;rows are stored in r11
 	;READ PORT D
 	LDR r0, GPIO_PORT_D		;move memory address of Port D base address to r0
 read_from_push_btns_loop:
@@ -195,7 +195,7 @@ notequal4:
 	B read_from_push_btns_loop	;branch to read_from_push_btns_loop to keep checking the 4 button again
 end:
 	STR r3, [r0, #GPIODATA]		;store r3 to r0 with the offset GPIODATA
-	MOV r0, r3					;copy r3 to r0
+	MOV r11, r3					;copy r3 to r11
 
 	POP {lr}
 	MOV pc, lr
@@ -306,7 +306,27 @@ DELAY:
 	CMP r9, r8					;compare r9 and r8
 	BEQ AGAIN					;branch to delay if r9 and r8 are equal to make sure pattern is randomized and no repeated number
 
+	CMP r11, #0
+	BEQ DisableRNG				;if r11 have a value of zero go to DisableRNG branch to disable the timer
+	BNE EnableRNG				;if r11 does not have of zero go to EnableRNG branch to enable the timer 
 
+EnableRNG:
+	;Enable Timer
+	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer1
+	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer1
+	SUB r11, #1					;decrementing r11 by 1 
+	
+DisableRNG:
+	;Disable Timer
+	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
+	BIC r1, #0x1				;clear bit 0 to disable Timer1
+	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer1
+	
 
 	POP {r10,r6,r8}
 	POP {lr}
