@@ -170,25 +170,25 @@ check3:
 	BEQ equal4					;branch if r2 does equal to 0x8
 	BNE notequal4				;branch if r2 does not equal to 0x8
 equal1:
-	ORR r3, #1					;set r3 = 1
+	ORR r3, #7					;set r3 = 1 x 7
 	B end						;branch to end
 notequal1:
 	ORR r3, #0x0				;does not do anything to the bit in r3
 	B check1					;branch back to check the second button
 equal2:
-	ORR r3, #2					;set r3 = 2
+	ORR r3, #14					;set r3 = 2 x 7
 	B end						;branch to end
 notequal2:
 	ORR r3, #0x0				;does not do anything to the bit in r3
 	B check2					;branch back to check the third button
 equal3:
-	ORR r3, #3					;set r3 = 3
+	ORR r3, #21					;set r3 = 3 x 7
 	B end						;branch to end
 notequal3:
 	ORR r3, #0x0				;does not do anything to the bit in r3
 	B check3					;branch back to check the fourth button
 equal4:
-	ORR r3, #4					;set r3 = 4
+	ORR r3, #28					;set r3 = 4 x 7
 	B end						;branch to end
 notequal4:
 	ORR r3, #0x0				;does not do anything to the bit in r3
