@@ -19,6 +19,7 @@ gamelevel:	.byte 0x01
 	.global game
 	.global lifelost
 	.global BlockCreate
+	.global BeginBlockLoop
 **********************************from exterior file**********************************************
 	.global uart_init					;game_init_library
 	.global uart_interrupt_init			;game_init_library
@@ -120,25 +121,26 @@ makeBlocks:
 	ITTT LE
 	LDRLE r4, ptr_to_blocksrow2
 	MOVLE r5, #0
-	BLE BeginBlockLoop
+	BLLE BeginBlockLoop
 	CMP r0, #1		;2nd level of blocks
 	ITTT LE
 	LDRLE r4, ptr_to_blocksrow3
 	MOVLE r5, #0
-	BLE BeginBlockLoop
+	BLLE BeginBlockLoop
 	CMP r0, #1		;3rd level of blocks
 	ITTT LE
 	LDRLE r4, ptr_to_blocksrow4
 	MOVLE r5, #0
-	BLE BeginBlockLoop
+	BLLE BeginBlockLoop
 	CMP r0, #1		;4th level of blocks
 	ITTT LE
 	LDRLE r4, ptr_to_blocksrow5
 	MOVLE r5, #0
-	BLE BeginBlockLoop
+	BLLE BeginBlockLoop
 	POP {pc}
 
 BlockCreate:
+	PUSH {lr}
 	MOV r2, r4	;move addy to r2
 	MOV r3, r9		;store color
 	MOV r1, #2
@@ -148,13 +150,14 @@ BlockCreate:
 	BL encodeBlock
 	MOV r4, r2		;move addy back to r4
 	ADD r5, #1
+	POP {pc}
 
 BeginBlockLoop:
 	PUSH {lr}
 	BL EnableRNG
 BlockLoop:
 	CMP r5, #7
-	BGE	BlockLoop
+	BLT	BlockLoop
 	BL DisableRNG
 	POP {pc}
 
