@@ -78,11 +78,11 @@ lifelost:
 	CMP r6, #0x7	;3 lives
 	IT EQ
 	SUBEQ r6, #4
-	MOV r0, #0x0B06
+	MOV r0, #0x0A06
 	LDR r1, ptr_to_cordinatesNow
-	STRB r0, [r1]
+	STRH r0, [r1]
 	LDR r1, ptr_to_cordinatesNext
-	STRB r0, [r1]
+	STRH r0, [r1]
 
 	POP {pc}
 

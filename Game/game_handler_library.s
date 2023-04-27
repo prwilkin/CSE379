@@ -21,6 +21,7 @@
 	.global EnableT
 **********************************from exterior file**********************************************
 	.global game		;game
+	.global gameprinter	;game_printer_and_sub
 **************************************************************************************************
 SYSCTL:			.word	0x400FE000	; Base address for System Control
 GPIO_PORT_A:	.word	0x40004000	; Base address for GPIO Port A
@@ -111,8 +112,9 @@ Disable:
 	;Set RGB Color to Blue when paused
 	LDR r0, GPIO_PORT_F
 	LDR r1, [r0, #GPIODATA]
-	ORR r1, #0x4
+	MOV r1, #0x4
 	STR r1, [r0, #GPIODATA]
+	BL gameprinter
 	B endswitch
 
 
@@ -127,8 +129,8 @@ Enable:
 
 	;Stop RGB Color to Blue when resumed
 	LDR r0, GPIO_PORT_F
-	LDR r1, [r0, #GPIODATA]
-	BIC r1, #0x4
+	LDR r1, ptr_to_ballcolor
+	LDRB r1, [r1]
 	STR r1, [r0, #GPIODATA]
 	B endswitch
 

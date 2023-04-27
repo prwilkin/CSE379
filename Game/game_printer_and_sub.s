@@ -131,7 +131,7 @@ ptr_to_blocksrow5:		.word blocksrow5
 
 
 gameprinter:
-	PUSH {lr}
+	PUSH {lr, r6}
 	BL clr_page
 	LDR r0, ptr_to_scorePrompt
 	BL output_string			;print score prompt
@@ -160,7 +160,7 @@ gameprinter:
 	LDR r1, ptr_to_row6
 	BL printer_assist		;print row 6
 	LDR r1, ptr_to_row7
-	BL printer_assist		;print row 7
+	BL printer_assist_pause		;print row 7
 	LDR r1, ptr_to_row8
 	BL printer_assist		;print row 8
 	LDR r1, ptr_to_row9
@@ -182,7 +182,7 @@ gameprinter:
 	LDR r0, ptr_to_topNbottom
 	BL output_string			;print bottom wall
 
-	POP {pc}
+	POP {pc, r6}
 	;############################################# printer END #############################################
 
 printer_assist:
@@ -191,7 +191,7 @@ printer_assist:
 	MOV r0, #0x7C
 	BL output_character	;print left wall
 	POP {r1}
-	LDRB r1, [r1]	;load cordinates
+	LDRH r1, [r1]	;load cordinates
 	LDR r5, ptr_to_cordinatesNext
 	LDRH r5, [r5]
 printer_assist_loop:
@@ -218,9 +218,9 @@ printer_assist_paddle:
 	MOV r0, #0x7C
 	BL output_character	;print left wall
 	POP {r1}
-	LDRB r1, [r1]	;load cordinates
+	LDRH r1, [r1]	;load cordinates
 	LDR r5, ptr_to_cordinatesNext
-	LDRH r5, [r5]
+	LDRH r6, [r5]
 	LDR r2, ptr_to_paddleX
 	LDRH r2, [r2]
 printer_assist_paddle_loop:
@@ -230,10 +230,7 @@ printer_assist_paddle_loop:
 	ITT EQ
 	ADDEQ r1, #0x0500	;move 5 right
 	BLEQ paddlePrint
-	CMP r1, r5			;if not at paddle check for ball
-	ITE EQ
-	BLEQ ballPrint		;if at ball print ball
-	BLNE spacePrint		;else print ball
+	BL ballspace
 	ADD r1, #0x0100		;move 1 right
 	B printer_assist_paddle_loop
 printer_assist_paddle_end:
@@ -245,7 +242,7 @@ printer_assist_paddle_end:
 
 printer_assist_block_row:
 	PUSH {lr}		;r1 ptr to cordinates, r2 pointer to blockrow
-	PUSH {r1, r2, r6}
+	PUSH {r1, r2}
 	MOV r0, #0x7C
 	BL output_character	;print left wall
 	POP {r1, r2}
@@ -274,8 +271,68 @@ printer_assist_block_row_end:
 	MOV r0, #0x7C
 	BL output_character		;print right wall
 	BL new_line
-	POP {r6, pc}
+	POP {pc}
 	;############################################# printer_assist_block_row END #############################################
+
+printer_assist_pause:
+	PUSH {lr}		;r1 ptr to cordinates,
+	PUSH {r1}
+	MOV r0, #0x7C
+	BL output_character	;print left wall
+	POP {r1}
+	LDRH r1, [r1]	;load cordinates
+	LDR r5, ptr_to_cordinatesNext
+	LDRH r5, [r5]
+	CMP r7, #1
+	ITTT EQ
+	PUSHEQ {r6}
+	MOVEQ r6, #0x0807
+	BEQ	printer_pause_loop
+	BNE printer_assist_loop
+printer_pause_loop:
+	CMP r1, #0x1500		;if more then 20
+	BGE printer_assist_pause_end
+	CMP r1, r5
+	IT EQ
+	BLEQ ballPrint	;if at ball print ball
+	CMP r1, r6
+	BEQ print_pause
+	CMP r1, r5
+	IT NE
+	BLNE spacePrint
+	ADD r1, #0x0100		;move 1 right
+	B printer_pause_loop
+printer_assist_loop_noPause:
+	CMP r1, #0x1500		;if more then 20
+	BGE printer_assist_pause_end
+	CMP r1, r5
+	IT EQ
+	BLEQ ballPrint	;if at ball print ball
+	CMP r1, r5
+	IT NE
+	BLNE spacePrint
+	ADD r1, #0x0100		;move 1 right
+	B printer_assist_loop_noPause
+printer_assist_pause_end:
+	CMP r7, #1
+	IT EQ
+	POPEQ {r6}
+	MOV r0, #0x7C
+	BL output_character		;print right wall
+	BL new_line
+	POP {pc}
+	;############################################# printer_assist_pause END #############################################
+
+print_pause:
+	LDR r0, ptr_to_blink
+	BL output_string
+	LDR r0, ptr_to_pause
+	BL output_string
+	LDR r0, ptr_to_NBlink
+	BL output_string
+	MOV r1, #0x0D07
+	B printer_pause_loop
+	;############################################# printer_pause END #############################################
 
 paddlePrint:
 	PUSH {r1, r2, lr}
@@ -369,32 +426,32 @@ colorBall:
 	PUSH {r1, lr}
 	CMP r3, #0		;default
 	ITTT EQ
-	LDREQ r1, ptr_to_defaulttx
+	LDREQ r0, ptr_to_defaulttx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #2		;red
 	ITTT EQ
-	LDREQ r1, ptr_to_redtx
+	LDREQ r0, ptr_to_redtx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #4		;blue
 	ITTT EQ
-	LDREQ r1, ptr_to_bluetx
+	LDREQ r0, ptr_to_bluetx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #6		;purple
 	ITTT EQ
-	LDREQ r1, ptr_to_purpletx
+	LDREQ r0, ptr_to_purpletx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #8		;green
 	ITTT EQ
-	LDREQ r1, ptr_to_greentx
+	LDREQ r0, ptr_to_greentx
 	BLEQ output_string
 	POPEQ {r1, pc}
 	CMP r3, #10		;yellow
 	ITTT EQ
-	LDREQ r1, ptr_to_yellowtx
+	LDREQ r0, ptr_to_yellowtx
 	BLEQ output_string
 	POPEQ {pc}
 	;############################################# color END #############################################
@@ -487,23 +544,17 @@ output_character_loop:
 
 ;OUTPUT_STRING SUBROUTINE
 output_string:
-	PUSH {lr}   			; Store register lr on stack
-
+	PUSH {r3, lr}   			; Store register lr on stack
+	MOV r3, r0				;store addy in r3
 output_string_loop:
-	MOV r1, r0				;store addy in r1
-	PUSH {r0}				;push addy to stack
-LOAD_num_string:
-	LDRB r0, [r1]			;load char
+	LDRB r0, [r3]			;load char
 	CMP r0, #0x00			;check for NULL char
 	BEQ end_output_string
 	BL output_character
-	POP {r0}				;pop addy from stack
-	ADD r0, r0, #1			;increment addy
+	ADD r3, #1			;increment addy
 	B output_string_loop
-
 end_output_string:
-	POP {r0}
-	POP {pc}
+	POP {r3, pc}
 	;############################################# output_string END #############################################
 
 ;CLR_PAGE SUBROUTINE

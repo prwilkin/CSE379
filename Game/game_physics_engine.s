@@ -208,6 +208,7 @@ checker180UpBlock:
 	BL getBlockLive
 	ADD r1, #1
 	CMP r4, #1		;is block alive
+	IT EQ
 	BLEQ blockHit	;yes
 	;set cordinates for yes and no
 	CMP r4, #1
@@ -227,9 +228,7 @@ checker180DownPaddle:
 	CMP r1, #0x0F	;one above paddle
 	BNE checker180DownBlock
 	LDR r5, ptr_to_paddleX
-	LDRH r2, [r5]		;get left x cord
-	LSR r2, #8
-	ADD r5, r2, #4		;get right x cord
+	LDRB r2, [r5, #1]		;get left x cord
 	CMP r2, r0			;if left of paddle
 	IT GT
 	ADDGT r1, #1
@@ -264,6 +263,7 @@ checker180DownBlock:
 	BL getBlockLive
 	SUB r1, #1		;reset y
 	CMP r4, #1		;is block alive
+	IT EQ
 	BLEQ blockHit	;yes
 	POP {r3, r4}
 	;set cordinates for yes and no
@@ -309,7 +309,7 @@ checker45UpLeftBlock:
 	;have to check if in block area
 	SUB  r2, r1, #1
 	LDR r5, ptr_to_blocklvls
-	LDR r5, [r5]
+	LDRB r5, [r5]
 	ADD r5, #1
 	CMP r2, r5
 	BGT	checker45UpLeftWall		;not in block range
@@ -374,7 +374,7 @@ checker45UpRightBlock:
 	;have to check if in block area
 	SUB  r2, r1, #1
 	LDR r5, ptr_to_blocklvls
-	LDR r5, [r5]
+	LDRB r5, [r5]
 	ADD r5, #1
 	CMP r2, r5
 	BGT	checker45UpRightWall		;not in block range
@@ -430,15 +430,13 @@ checker45DownLeftPaddle:
 	CMP r1, #0x0F
 	BNE checker45DownLeftBlock
 	LDR r5, ptr_to_paddleX
-	LDRB r2, [r5]		;get left x cord
+	LDRB r2, [r5, #1]		;get left x cord
 	ADD r5, r2, #4		;get right x cord
 	CMP r2, r0 		;if left of paddle
-	BGT paddle
+	BGT checker45DownLeftWall
 	CMP r5, r0		;if right of paddle
-	BLT paddle
-	SUB r0, #1		;move 1 left
-	ADD r1, #1		;move 1 down
-	B checker45end			;exit <=
+	BLT checker45DownLeftWall
+	B paddle			;exit <=
 checker45DownLeftBlock:
 	CMP r1, #0x06	;if on row 6 to 16 check walls
 	BGE checker45DownLeftWall
@@ -508,7 +506,7 @@ checker45DownRightPaddle:
 	BGT checker45DownRightWall
 	CMP r5, r0		;if right of paddle
 	BLT checker45DownRightWall
-	B checker45end			;exit <=
+	B paddle			;exit <=
 checker45DownRightBlock:
 	CMP r1, #0x06	;if on row 6 to 16 check walls
 	BGE checker45DownRightWall
@@ -609,12 +607,14 @@ blockCheck45noUpDown:
 	;check for left
 	POP {r3, r4}
 	ADD r1, r4		;reset y
-	SUB r0, r3		;adjust x
+	ADD r0, r3		;adjust x
 	PUSH {r3, r4}
 	BL getBlockLive
 	CMP r4, #1
-	BLEQ blockHit
 	BNE blockCheck45cornerBlock
+	BLEQ blockHit
+	POP {r3, r4}
+	CMP r3, #1
 	ITE EQ		;if LeftRight is right then
 	MOVEQ r3, #-1	;set left
 	MOVNE r3, #1	;else set right
@@ -625,10 +625,12 @@ blockCheck45cornerBlock:
 	PUSH {r3, r4}
 	BL getBlockLive
 	CMP r4, #1
-	BLEQ blockHit
-	ITT EQ		;if live note in r2
-	MOVEQ r2, #1
-	POPEQ {pc}
+	ITT NE
+	POPNE {r3, r4}
+	POPNE {pc}
+	BL blockHit		;if live note in r2
+	MOV r2, #1
+	POP {r3, r4}
 	CMP r3, #1	;else set UpDown & LeftRight
 	ITE EQ		;if LeftRight is right then
 	MOVEQ r3, #-1	;set left
@@ -641,6 +643,170 @@ blockCheck45cornerBlock:
 	;############################################# blockCheck45 END #############################################
 
 checker60:
+	SUB r3, #1	;set LeftRight mod
+	SUB r4, #1	;set UpDown mod
+	BL checker60UpDown
+	BL checker60LeftRight
+	BL checker60UpDown2
+checker60end:
+	ADD r3, #1	;reset LeftRight
+	ADD r4, #1	;reset UpDown
+	LDR r2, ptr_to_cordinatesNext
+	BL encode
+	LDR r2, ptr_to_LeftRight
+	STRB r3, [r2]
+	LDR r2, ptr_to_UpDown
+	STRB r4, [r2]
+	POP {pc}
+	;############################################# checker60 END #############################################
+
+checker60UpDown:
+	PUSH {lr}
+	CMP r4, #1		;is UpDown up
+	BNE checker60Down
+checker60Up:
+	CMP r1, #0x01	;row 1
+	ITTTT EQ
+	SUBEQ r1, #1	;move up 1
+	ADDEQ r0, r3		;move x aoccdingly
+	POPEQ {lr}			;lr to game
+	BEQ checker60end		;exit <=
+	CMP r1, #0x00	;row 0
+	BNE	checker60UpDownBlock
+	ADD r1, #1		;move down 1
+	MOV r4, #-1		;set UpDown down
+	CMP r3, #1
+	ITE EQ			;if LeftRight is right
+	MOVEQ r3, #-1	;then set left
+	MOVNE r3, #1	;else set right
+	POP {pc}			;exit <=
+checker60Down:
+	CMP r1, #0x10	;if bottom row
+	BEQ lifelost
+	CMP r1, #0x0F	;if above paddle
+	BNE checker60UpDownBlock
+	LDR r5, ptr_to_paddleX
+	LDRB r2, [r5]		;get left x cord
+	ADD r5, r2, #4		;get right x cord
+	CMP r2, r0 		;if left of paddle
+	BGT checker60UpDownBlock
+	CMP r5, r0		;if right of paddle
+	BLT checker60UpDownBlock
+	POP {lr}
+	B paddle			;exit <=
+checker60UpDownBlock:
+	SUB r1, r4	;set y for check
+	CMP r1, #0x06
+	BGE checker60UpDownEnd
+	;have to check if in block area
+	LDR r5, ptr_to_blocklvls
+	LDRB r5, [r5]
+	ADD r5, #1
+	CMP r1, r5
+	BGT	checker60UpDownEnd		;not in block range
+	PUSH {r3, r4}
+	BL getBlockLive
+	CMP r4, #1
+	BNE checker60UpDownEnd	;if block dead exit
+	BL blockHit
+	POP {r3, r4}
+	ADD r1, r4
+	ADD r1, r4		;reset y move 1 accordingly
+	CMP r4, #1		;if UpDown is up
+	ITE EQ
+	MOVEQ r4, #-1	;then set down
+	MOVNE r4, #1	;else set up
+checker60UpDownEnd:
+	POP {pc}
+	;############################################# checker60UpDown END #############################################
+
+checker60LeftRight:
+	PUSH {lr}
+	CMP r0, #0x00	;left wall
+	ITTT EQ
+	ADDEQ r0, #1	;move 1 right
+	MOVEQ r3, #1	;set LeftRight to left
+	BEQ checker60LeftRightEnd	;exit <=
+	CMP r0, #0x14	;right wall
+	ITTT EQ
+	SUBEQ r0, #1	;move 1 left
+	MOVEQ r3, #-1	;set LeftRight to right
+	BEQ checker60LeftRightEnd	;exit <=
+	ADD r0, r3	;set x for check
+	CMP r1, #0x01
+	BLE checker60LeftRightEnd
+	CMP r1, #0x06
+	BGE checker60LeftRightEnd
+	;have to check if in block area
+	SUB  r2, r1, #1
+	LDR r5, ptr_to_blocklvls
+	LDRB r5, [r5]
+	ADD r5, #1
+	CMP r2, r5
+	BGT	checker60UpDownEnd		;not in block range
+	PUSH {r3, r4}
+	BL getBlockLive
+	CMP r4, #1
+	BNE checker60UpDownEnd	;if block dead exit
+	BL blockHit
+	POP {r3, r4}
+	SUB r0, r3
+	SUB r0, r3		;reset x move 1 accordingly
+	CMP r3, #1		;if LeftRight is right
+	ITE EQ
+	MOVEQ r3, #-1	;then set left
+	MOVNE r3, #1	;else set right
+checker60LeftRightEnd:
+	POP {pc}
+	;############################################# checker60LeftRight END #############################################
+
+checker60UpDown2:
+	PUSH {lr}
+	CMP r4, #1		;is UpDown up
+	BNE checker60Down2
+checker60Up2:
+	CMP r1, #0x01	;row 1
+	ITT EQ
+	SUBEQ r1, #1	;move up 1
+	POPEQ {lr}			;exit <=
+checker60Down2:
+	CMP r1, #0x10	;if bottom row
+	BEQ lifelost
+	CMP r1, #0x0F	;if above paddle
+	BNE checker60UpDownBlock2
+	LDR r5, ptr_to_paddleX
+	LDRB r2, [r5]		;get left x cord
+	ADD r5, r2, #4		;get right x cord
+	CMP r2, r0 		;if left of paddle
+	BGT checker60UpDownBlock2
+	CMP r5, r0		;if right of paddle
+	BLT checker60UpDownBlock2
+	POP {lr}
+	B paddle			;exit <=
+checker60UpDownBlock2:
+	SUB r1, r4	;set y for check
+	CMP r1, #0x06
+	BGE checker60UpDownEnd2
+	;have to check if in block area
+	LDR r5, ptr_to_blocklvls
+	LDRB r5, [r5]
+	ADD r5, #1
+	CMP r1, r5
+	BGT	checker60UpDownEnd2		;not in block range
+	PUSH {r3, r4}
+	BL getBlockLive
+	CMP r4, #1
+	BNE checker60UpDownEnd2	;if block dead exit
+	BL blockHit
+	POP {r3, r4}
+	ADD r1, r4		;reset y
+	CMP r4, #1		;if UpDown is up
+	ITE EQ
+	MOVEQ r4, #-1	;then set down
+	MOVNE r4, #1	;else set up
+checker60UpDownEnd2:
+	POP {pc}
+	;############################################# checker60LeftRight END #############################################
 
 getBlockLive:
 	PUSH {lr}	;takes r0 & r1 as x & y // must be modified for the block you want to check before passing on
@@ -703,10 +869,10 @@ blockHit:
 	MOV r4, #0
 	MOV r3, #0
 	BL encodeBlock	;kill block
+	LDR r4, ptr_to_gamelevel		;score
+	LDRB r3, [r4]
 	LDR r4, ptr_to_score
 	LDRH r2, [r4]
-	LDR r4, ptr_to_gamelevel
-	LDRB r3, [r4]
 	ADD r2, r3
 	STRH r2, [r4]
 	MOV r0, r2
