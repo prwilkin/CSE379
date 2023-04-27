@@ -14,11 +14,11 @@ gamelevel:	.byte 0x01
 	.global cordinatesNext		;game_physics_engine
 	.global blocklvls			;game_physics_engine
 
-
 	.text
 	.global start
 	.global game
 	.global lifelost
+	.global BlockCreate
 **********************************from exterior file**********************************************
 	.global uart_init					;game_init_library
 	.global uart_interrupt_init			;game_init_library
@@ -62,7 +62,7 @@ start:
 	BL DisableRNG
 	BL start_printer
 	;BL read_from_push_btns
-	;BL makeBlocks
+	BL makeBlocks
 	BL EnableT		;start game
 	MOV r7, #0
 	MOV r6, #0xF
@@ -116,40 +116,47 @@ makeBlocks:
 	LDR r0, ptr_to_blocklvls
 	LDRB r0, [r0]
 	MOV r1, #2
-	MOV r4, #1		;block is alive
 	CMP r0, #1		;1st level of blocks
 	ITTT LE
-	LDRLE r2, ptr_to_blocksrow2
+	LDRLE r4, ptr_to_blocksrow2
 	MOVLE r5, #0
-	BLE makeBlocksLoop
+	BLE BeginBlockLoop
 	CMP r0, #1		;2nd level of blocks
 	ITTT LE
-	LDRLE r2, ptr_to_blocksrow3
+	LDRLE r4, ptr_to_blocksrow3
 	MOVLE r5, #0
-	BLE makeBlocksLoop
+	BLE BeginBlockLoop
 	CMP r0, #1		;3rd level of blocks
 	ITTT LE
-	LDRLE r2, ptr_to_blocksrow4
+	LDRLE r4, ptr_to_blocksrow4
 	MOVLE r5, #0
-	BLE makeBlocksLoop
+	BLE BeginBlockLoop
 	CMP r0, #1		;4th level of blocks
 	ITTT LE
-	LDRLE r2, ptr_to_blocksrow5
+	LDRLE r4, ptr_to_blocksrow5
 	MOVLE r5, #0
-	BLE makeBlocksLoop
+	BLE BeginBlockLoop
 	POP {pc}
 
-makeBlocksLoop:
-	BL EnableRNG		;HOW FAST DOES THE TIMMER RUN
-	CMP r5, #7
-	IT GE
-	MOVGE pc, lr
-	MOV r3, r9			;store color
+BlockCreate:
+	MOV r2, r4	;move addy to r2
+	MOV r3, r9		;store color
+	MOV r1, #2
 	ADD r3, #1
 	MUL r3, r1
+	MOV r4, #1		;block is alive
 	BL encodeBlock
+	MOV r4, r2		;move addy back to r4
 	ADD r5, #1
-	B makeBlocksLoop
+
+BeginBlockLoop:
+	PUSH {lr}
+	BL EnableRNG
+BlockLoop:
+	CMP r5, #7
+	BGE	BlockLoop
+	BL DisableRNG
+	POP {pc}
 
 game_over:
 
