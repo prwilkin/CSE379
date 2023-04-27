@@ -260,8 +260,8 @@ timer_interrupt_init:
 
 	;Setup Interval Period
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0x2400				;set r1 as 16000000 to make the Timer interrupt to start at 1 second
-	MOVT r1, #0x00F4
+	MOV r1, #0x1200				;set r1 as 16000000 to make the Timer interrupt to start at 1 second
+	MOVT r1, #0x007A
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Setup Timer to Interrupt Processor
@@ -313,7 +313,7 @@ timer_interrupt_init_RNG:
 
 	;Setup Interval Period
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0x186A			;set r1 as 6250 to make the Timer interrupt to start at 1 millisecond
+	MOV r1, #0x064				;set r1 as 6250 to make the Timer interrupt to start at 1 millisecond
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Setup Timer to Interrupt Processor
