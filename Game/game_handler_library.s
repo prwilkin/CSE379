@@ -24,6 +24,7 @@
 	.global EnableT
 **********************************from exterior file**********************************************
 	.global game		;game
+	.global BlockCreate
 	.global gameprinter	;game_printer_and_sub
 **************************************************************************************************
 SYSCTL:			.word	0x400FE000	; Base address for System Control
@@ -141,10 +142,10 @@ endswitch:
 	POP {lr}
 	BX lr       	; Return
 	;############################################# Switch_Handler END #############################################
-	
+
 ;READ_FROM_PUSH_BTNS_SUBROUTINE
-read_from_push_btns:	
-	PUSH {lr} ; Store register lr on stack	
+read_from_push_btns:
+	PUSH {lr} ; Store register lr on stack
 	;rows are stored in r11///// ignore
 	;READ PORT D
 	LDR r0, GPIO_PORT_D		;move memory address of Port D base address to r0
@@ -210,8 +211,8 @@ end:
 
 Four_LED_subroutine:
 	PUSH {lr}				;lives stored in r6
-	CMP r6, #0xF				;compare if r6 is 0xF 
-	BEQ setlight1				;if r6 is 0xF go to setlight1 
+	CMP r6, #0xF				;compare if r6 is 0xF
+	BEQ setlight1				;if r6 is 0xF go to setlight1
 	BNE Threelives				;if not go to Threelives
 setlight1:
 	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
@@ -224,7 +225,7 @@ setlight1:
 Threelives:
 	CMP r6, #0x7				;compare if r6 is 0x7
 	BEQ setlight2				;if r6 is 0x7 go to setlight2
-	BNE Twolives				;if not go to Twolives 
+	BNE Twolives				;if not go to Twolives
 setlight2:
 	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
 	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
@@ -232,11 +233,11 @@ setlight2:
 	ORR r1, r6					;set bit 0-2 to set 3 LEDs on the ALICE Board on
 	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set 3 LEDS on
 	MOV r6, #0x3				;set r6 to 0x3 because next time the player lose a life it will go back here to set 2 LED on
-	B end4light					;branch to end4light to end the subroutine 
+	B end4light					;branch to end4light to end the subroutine
 Twolives:
 	CMP r6, #0x3				;compare if r6 is 0x3
 	BEQ setlight3				;if r6 is 0x7 go to setlight3
-	BNE Onelives				;if not go to Onelives 
+	BNE Onelives				;if not go to Onelives
 setlight3:
 	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
 	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
@@ -244,11 +245,11 @@ setlight3:
 	ORR r1, r6					;set bit 0-1 to set 2 LEDs on the ALICE Board on
 	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set 2 LEDS on
 	MOV r6, #0x1				;set r6 to 0x1 because next time the player lose a life it will go back here to set 1 LED on
-	B end4light					;branch to end4light to end the subroutine 
+	B end4light					;branch to end4light to end the subroutine
 Onelives:
-	CMP r6, #0x1				;compare if r6 is 0x1	
+	CMP r6, #0x1				;compare if r6 is 0x1
 	BEQ setlight4				;if r6 is 0x7 go to setlight4
-	BNE Zerolives				;if not go to Zerolives 
+	BNE Zerolives				;if not go to Zerolives
 setlight4:
 	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
 	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
@@ -291,20 +292,20 @@ Timer_Handler_RNG:
 
 	MOV r10, #5					;r10 = 5 to be use to mod 5
 
-	MOV r0, #0x0000				;move memory address of Timer1 base address to r0
+	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
 	ORR r1, #0x1				;set bit 0 to clear Timer1 interrupt so Timer1 interrupt can be interrupted again
 	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer1 interrupt can be interrupted again
 
 AGAIN:							;use a delay to make sure there no pattern in the Timer1 A Value
-	MOV r6, #0xFFFF				;set r6 as a big value
+	MOV r6, #0x0009				;set r6 as a big value
 DELAY:
-    SUBS r6, r6, #1				;do a loop subracting r6 by 1 and setting r6 with the new value when it done subtracting 
+    SUBS r6, r6, #1				;do a loop subracting r6 by 1 and setting r6 with the new value when it done subtracting
     BNE DELAY					;if r6 does not equal zero go back to loop to keep subtracting
-    
+
 	LDR r1, [r0, #0x050]		;load Timer A Value to r1
-	MOV r8, r9					;copy r9 to r8 
+	MOV r8, r9					;copy r9 to r8
 	SDIV r2, r1, r10			;divide Timer A Value by 5 to r2
 	MUL r3, r2, r10				;multiply r2 with 5 to r3
 	SUB r9, r1, r3				;subtract Timer A Value with the value of r3 to get the value of Timer A Value mod 5
@@ -317,6 +318,7 @@ DELAY:
 	;BNE EnableRNG				;if r11 does not have of zero go to EnableRNG branch to enable the timer
 
 	BL DisableRNG
+	BL makeBlock
 	POP {r10,r6,r8}
 	POP {lr}
 	BX lr       	; Return
@@ -329,9 +331,9 @@ EnableRNG:
 	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
 	ORR r1, #0x1				;set bit 0 to enable Timer1
 	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer1
-	SUB r11, #1					;decrementing r11 by 1 
+	SUB r11, #1					;decrementing r11 by 1
 	MOV pc, lr
-	
+
 DisableRNG:
 	;Disable Timer
 	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
@@ -340,7 +342,7 @@ DisableRNG:
 	BIC r1, #0x1				;clear bit 0 to disable Timer1
 	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer1
 	MOV pc, lr
-	
+
 
 simple_read_character:
 	PUSH {lr}   ; Store register lr on stack
