@@ -354,8 +354,9 @@ timer_interrupt_init_RNG:
 
 	;Setup Interval Period
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0x186A			;set r1 as 6250 to make the Timer interrupt to start at 1 millisecond
-	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
+	MOV r1, #0x1200			;set r1 as 8000000 to make the Timer interrupt to start at 0.5 second
+	MOV r1, #0x007A
+	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 0.5 second
 
 	;Setup Timer to Interrupt Processor
 	LDR r1, [r0, #0x018]		;load content of r0 with offset with 0x018 to r1
@@ -548,8 +549,6 @@ end:
 	POP {lr}
 	MOV pc, lr
 	;############################################# read_from_push_btns END #############################################
-	
-	
 ;TIMER_LEVEL_2 SUBROUTINE
 Timer_Level_2:
 	PUSH {lr}
@@ -557,8 +556,8 @@ Timer_Level_2:
 	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0xE200				;set r1 as 320000 to make the Timer interrupt to start at 0.2 second
-	MOVT r1, #0x0004
+	MOV r1, #0xB800				;set r1 as 768000 to make the Timer interrupt to start at 0.48 second
+	MOVT r1, #0x000B
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	POP {lr}
@@ -572,8 +571,8 @@ Timer_Level_3:
 	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0x6500				;set r1 as 288000 to make the Timer interrupt to start at 0.2 second
-	MOVT r1, #0x0004
+	MOV r1, #0x3B00				;set r1 as 736000 to make the Timer interrupt to start at 0.46 second
+	MOVT r1, #0x000B
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	POP {lr}
@@ -587,8 +586,8 @@ Timer_Level_4:
 	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0xE800				;set r1 as 320000 to make the Timer interrupt to start at 0.2 second
-	MOVT r1, #0x0003
+	MOV r1, #0xBE00				;set r1 as 704000 to make the Timer interrupt to start at 0.44 second
+	MOVT r1, #0x000A
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	POP {lr}
