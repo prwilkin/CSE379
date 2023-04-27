@@ -24,7 +24,8 @@
 	.global EnableT
 **********************************from exterior file**********************************************
 	.global game		;game
-	.global BlockCreate
+	.global BlockCreate	;game
+	.global BeginBlockLoop	;game
 	.global gameprinter	;game_printer_and_sub
 **************************************************************************************************
 SYSCTL:			.word	0x400FE000	; Base address for System Control
@@ -318,9 +319,11 @@ DELAY:
 	;BNE EnableRNG				;if r11 does not have of zero go to EnableRNG branch to enable the timer
 
 	BL DisableRNG
-	BL makeBlock
+	BL BlockCreate
 	POP {r10,r6,r8}
 	POP {lr}
+	;ADR r0, GotoBeginBlockLoop
+	;MOV lr, r0
 	BX lr       	; Return
 	;############################################# Timer_Handler_RNG END #############################################
 
@@ -374,6 +377,9 @@ EnableT:
 	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
 	POP {pc}
 	;############################################# EnableT END #############################################
+
+GotoBeginBlockLoop:
+	B BeginBlockLoop
 
 end_game:
 	MOV r0, #0
