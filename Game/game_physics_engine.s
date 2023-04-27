@@ -1,11 +1,13 @@
 	.data
-	.global paddleX
-	.global cordinatesNow
-	.global cordinatesNext
+
 	.global blocksrow2
 	.global blocksrow3
 	.global blocksrow4
 	.global blocksrow5
+	.global cordinatesNow
+	.global cordinatesNext
+	.global paddleX
+	.global blocklvls
 
 blocksrow2:			.byte 0x21, 0x41, 0x61, 0x21, 0x81, 0xA1, 0x61	;init alive with no color	1st 4 bits are for live
 blocksrow3:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color	2nd 4 bits are for color
@@ -716,6 +718,7 @@ checker60UpDownBlock:
 	ITE EQ
 	MOVEQ r4, #-1	;then set down
 	MOVNE r4, #1	;else set up
+	POP {lr}
 checker60UpDownEnd:
 	POP {pc}
 	;############################################# checker60UpDown END #############################################
@@ -756,6 +759,7 @@ checker60LeftRight:
 	ITE EQ
 	MOVEQ r3, #-1	;then set left
 	MOVNE r3, #1	;else set right
+	POP {lr}
 checker60LeftRightEnd:
 	POP {pc}
 	;############################################# checker60LeftRight END #############################################

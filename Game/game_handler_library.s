@@ -2,12 +2,13 @@
 ;this file is for interrupt hanlders only
 **********************************from exterior file**********************************************
 	.global paddleX		;game_physics_engine
+	.global blocklvls	;game_physics_engine
 	.global ballcolor	;game_printer_and_sub
 **************************************************************************************************
 
 	.text
 ;handler subroutines: (in order of apperance in file)
-;	uart, rgbLED, switch, read push button, four led, timer, timer rng,
+;	uart, rgbLED, switch, read push button, four led, timer, timer rng, EnableRNG, DisableRNG
 ;	simple read char, disable timer, & enable timer
 	.global UART0_Handler
 	.global rgbLED
@@ -16,6 +17,8 @@
 	.global Four_LED_subroutine
 	.global Timer_Handler
 	.global Timer_Handler_RNG
+	.global EnableRNG
+	.global DisableRNG
 	.global simple_read_character
 	.global DisableT
 	.global EnableT
@@ -37,6 +40,7 @@ UART0:			.word	0x4000C000	; Base address for UART0
 U0FR: 			.equ 	0x18		; UART0 Flag Register
 **********************************from exterior file**********************************************
 ptr_to_paddleX: 		.word paddleX
+ptr_to_blocklvls:		.word blocklvls
 ptr_to_ballcolor:		.word ballcolor
 **************************************************************************************************
 
@@ -141,7 +145,7 @@ endswitch:
 ;READ_FROM_PUSH_BTNS_SUBROUTINE
 read_from_push_btns:	
 	PUSH {lr} ; Store register lr on stack	
-	;rows are stored in r11
+	;rows are stored in r11///// ignore
 	;READ PORT D
 	LDR r0, GPIO_PORT_D		;move memory address of Port D base address to r0
 read_from_push_btns_loop:
@@ -196,7 +200,9 @@ notequal4:
 	B read_from_push_btns_loop	;branch to read_from_push_btns_loop to keep checking the 4 button again
 end:
 	STR r3, [r0, #GPIODATA]		;store r3 to r0 with the offset GPIODATA
-	MOV r11, r3					;copy r3 to r11
+	LDR r0, ptr_to_blocklvls
+	STRB r3, [r0]
+	;MOV r11, r3					;copy r3 to r11
 
 	POP {lr}
 	MOV pc, lr
@@ -305,9 +311,16 @@ DELAY:
 	CMP r9, r8					;compare r9 and r8
 	BEQ AGAIN					;branch to delay if r9 and r8 are equal to make sure pattern is randomized and no repeated number
 
-	CMP r11, #0
-	BEQ DisableRNG				;if r11 have a value of zero go to DisableRNG branch to disable the timer
-	BNE EnableRNG				;if r11 does not have of zero go to EnableRNG branch to enable the timer 
+	;///////disregard
+	;CMP r11, #0
+	;BEQ DisableRNG				;if r11 have a value of zero go to DisableRNG branch to disable the timer
+	;BNE EnableRNG				;if r11 does not have of zero go to EnableRNG branch to enable the timer
+
+	BL DisableRNG
+	POP {r10,r6,r8}
+	POP {lr}
+	BX lr       	; Return
+	;############################################# Timer_Handler_RNG END #############################################
 
 EnableRNG:
 	;Enable Timer
@@ -317,6 +330,7 @@ EnableRNG:
 	ORR r1, #0x1				;set bit 0 to enable Timer1
 	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer1
 	SUB r11, #1					;decrementing r11 by 1 
+	MOV pc, lr
 	
 DisableRNG:
 	;Disable Timer
@@ -325,13 +339,16 @@ DisableRNG:
 	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
 	BIC r1, #0x1				;clear bit 0 to disable Timer1
 	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer1
+	MOV pc, lr
 	
 
-	POP {r10,r6,r8}
+simple_read_character:
+	PUSH {lr}   ; Store register lr on stack
+	LDR r2, UART0
+	LDRB r0, [r2]			;load data
 	POP {lr}
-	BX lr       	; Return
-	;############################################# Timer_Handler END #############################################
-
+	MOV pc, lr
+	;############################################# simple_read_character END #############################################
 
 DisableT:
 	;Disable Timer
