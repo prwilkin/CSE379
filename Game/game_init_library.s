@@ -260,7 +260,7 @@ timer_interrupt_init:
 
 	;Setup Interval Period
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0x1200				;set r1 as 16000000 to make the Timer interrupt to start at 1 second
+	MOV r1, #0x1200				;set r1 as 8000000 to make the Timer interrupt to start at 1 second
 	MOVT r1, #0x007A
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
@@ -313,7 +313,9 @@ timer_interrupt_init_RNG:
 
 	;Setup Interval Period
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0x064				;set r1 as 6250 to make the Timer interrupt to start at 1 millisecond
+	;MOV r1, #0x064				;set r1 as 6250 to make the Timer interrupt to start at 1 millisecond
+	MOV r1, #0x1200				;set r1 as 8000000 to make the Timer interrupt to start at 1 second
+	MOVT r1, #0x007A
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Setup Timer to Interrupt Processor
@@ -328,11 +330,11 @@ timer_interrupt_init_RNG:
 	STR r1, [r0, #0x100]		;store r1 into r0 to allow Timer0 to Interrupt Processor
 
 	;Enable Timer
-	MOV r0, #0x1000				;move memory address of Timer0 base address to r0
-	MOVT r0, #0x4003
-	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
-	ORR r1, #0x1				;set bit 0 to enable Timer0
-	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
+	;MOV r0, #0x1000				;move memory address of Timer0 base address to r0
+	;MOVT r0, #0x4003
+	;LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
+	;ORR r1, #0x1				;set bit 0 to enable Timer0
+	;STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
 
 	POP {lr}
 	MOV pc, lr
