@@ -230,6 +230,8 @@ printer_assist_paddle_loop:
 	ITT EQ
 	ADDEQ r1, #0x0500	;move 5 right
 	BLEQ paddlePrint
+	CMP r1, #0x1500		;exit on 21st loop
+	BGE printer_assist_paddle_end	;exit <=
 	BL ballspace
 	ADD r1, #0x0100		;move 1 right
 	B printer_assist_paddle_loop
@@ -453,7 +455,7 @@ colorBall:
 	ITTT EQ
 	LDREQ r0, ptr_to_yellowtx
 	BLEQ output_string
-	POPEQ {pc}
+	POPEQ {r1, pc}
 	;############################################# color END #############################################
 
 start_printer:

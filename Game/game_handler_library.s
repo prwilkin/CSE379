@@ -66,6 +66,7 @@ D:
 	LDR r0, ptr_to_paddleX
 	LDRH r1, [r0]
 	LSR r2, r1, #8
+	ADD r2, #4
 	CMP r2, #0x14
 	BEQ UART0_Handler_end
 	ADD r1, #0x0100
@@ -288,43 +289,34 @@ Timer_Handler:
 	;############################################# Timer_Handler END #############################################
 
 Timer_Handler_RNG:
-	PUSH {lr}				;random number goes in r9
-	PUSH {r10,r6,r8}
+	PUSH {lr}
+	PUSH {r10,r5}
 
 	MOV r10, #5					;r10 = 5 to be use to mod 5
-
 	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
 	ORR r1, #0x1				;set bit 0 to clear Timer1 interrupt so Timer1 interrupt can be interrupted again
 	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer1 interrupt can be interrupted again
 
-AGAIN:							;use a delay to make sure there no pattern in the Timer1 A Value
-	MOV r6, #0x0009				;set r6 as a big value
+ADDValue:
+	ADD r8, #0x0043				;add some value to r6 to change up the delay
 DELAY:
-    SUBS r6, r6, #1				;do a loop subracting r6 by 1 and setting r6 with the new value when it done subtracting
+    SUBS r8, r8, #1				;do a loop subracting r6 by 1 and setting r6 with the new value when it done subtracting
     BNE DELAY					;if r6 does not equal zero go back to loop to keep subtracting
 
 	LDR r1, [r0, #0x050]		;load Timer A Value to r1
-	MOV r8, r9					;copy r9 to r8
+	MOV r1, r1, LSR #5
+	;MOV r5, r9					;copy r9 to r8
 	SDIV r2, r1, r10			;divide Timer A Value by 5 to r2
 	MUL r3, r2, r10				;multiply r2 with 5 to r3
 	SUB r9, r1, r3				;subtract Timer A Value with the value of r3 to get the value of Timer A Value mod 5
-	CMP r9, r8					;compare r9 and r8
-	BEQ AGAIN					;branch to delay if r9 and r8 are equal to make sure pattern is randomized and no repeated number
-
-	;///////disregard
-	;CMP r11, #0
-	;BEQ DisableRNG				;if r11 have a value of zero go to DisableRNG branch to disable the timer
-	;BNE EnableRNG				;if r11 does not have of zero go to EnableRNG branch to enable the timer
-
-	BL DisableRNG
-	BL BlockCreate
-	POP {r10,r6,r8}
+	CMP r9, r7					;compare r9 and r8
+	BEQ ADDValue				;branch to delay if r9 and r8 are equal to make sure pattern is randomized and no repeated number
+	;BL DisableRNG
+	POP {r10,r5}
 	POP {lr}
-	;ADR r0, GotoBeginBlockLoop
-	;MOV lr, r0
-	BX lr       	; Return
+	BX lr      	; Return
 	;############################################# Timer_Handler_RNG END #############################################
 
 EnableRNG:
@@ -334,7 +326,6 @@ EnableRNG:
 	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
 	ORR r1, #0x1				;set bit 0 to enable Timer1
 	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer1
-	SUB r11, #1					;decrementing r11 by 1
 	MOV pc, lr
 
 DisableRNG:

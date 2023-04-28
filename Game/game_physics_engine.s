@@ -9,7 +9,7 @@
 	.global paddleX
 	.global blocklvls
 
-blocksrow2:			.byte 0x21, 0x41, 0x61, 0x21, 0x81, 0xA1, 0x61	;init alive with no color	1st 4 bits are for live
+blocksrow2:			.byte 0xA1, 0x61, 0x21, 0x81, 0x61, 0xA1, 0x41	;init alive with no color	1st 4 bits are for live
 blocksrow3:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color	2nd 4 bits are for color
 blocksrow4:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
 blocksrow5:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
@@ -231,6 +231,7 @@ checker180DownPaddle:
 	BNE checker180DownBlock
 	LDR r5, ptr_to_paddleX
 	LDRB r2, [r5, #1]		;get left x cord
+	ADD r5, r2, #4
 	CMP r2, r0			;if left of paddle
 	IT GT
 	ADDGT r1, #1
@@ -502,7 +503,7 @@ checker45DownRightPaddle:
 	CMP r1, #0x0F
 	BNE checker45DownRightBlock
 	LDR r5, ptr_to_paddleX
-	LDRB r2, [r5]		;get left x cord
+	LDRB r2, [r5, #1]		;get left x cord
 	ADD r5, r2, #4		;get right x cord
 	CMP r2, r0 		;if left of paddle
 	BGT checker45DownRightWall
@@ -668,11 +669,11 @@ checker60UpDown:
 	BNE checker60Down
 checker60Up:
 	CMP r1, #0x01	;row 1
-	ITTTT EQ
+	ITTT EQ
 	SUBEQ r1, #1	;move up 1
-	ADDEQ r0, r3		;move x aoccdingly
+	ADDEQ r0, r3		;move x accordingly
 	POPEQ {lr}			;lr to game
-	BEQ checker60end		;exit <=
+	;BEQ checker60end		;exit <=
 	CMP r1, #0x00	;row 0
 	BNE	checker60UpDownBlock
 	ADD r1, #1		;move down 1
@@ -684,11 +685,15 @@ checker60Up:
 	POP {pc}			;exit <=
 checker60Down:
 	CMP r1, #0x10	;if bottom row
+	ITTTT EQ
+	ADDEQ r3, #1	;reset LeftRight
+	ADDEQ r4, #1	;reset UpDown
+	POPEQ {lr}
 	BEQ lifelost
 	CMP r1, #0x0F	;if above paddle
 	BNE checker60UpDownBlock
 	LDR r5, ptr_to_paddleX
-	LDRB r2, [r5]		;get left x cord
+	LDRB r2, [r5, #1]		;get left x cord
 	ADD r5, r2, #4		;get right x cord
 	CMP r2, r0 		;if left of paddle
 	BGT checker60UpDownBlock
@@ -709,6 +714,8 @@ checker60UpDownBlock:
 	PUSH {r3, r4}
 	BL getBlockLive
 	CMP r4, #1
+	ITT NE
+	POPNE {r3, r4}
 	BNE checker60UpDownEnd	;if block dead exit
 	BL blockHit
 	POP {r3, r4}
@@ -718,7 +725,6 @@ checker60UpDownBlock:
 	ITE EQ
 	MOVEQ r4, #-1	;then set down
 	MOVNE r4, #1	;else set up
-	POP {lr}
 checker60UpDownEnd:
 	POP {pc}
 	;############################################# checker60UpDown END #############################################
@@ -728,12 +734,12 @@ checker60LeftRight:
 	CMP r0, #0x00	;left wall
 	ITTT EQ
 	ADDEQ r0, #1	;move 1 right
-	MOVEQ r3, #1	;set LeftRight to left
+	MOVEQ r3, #1	;set LeftRight to right
 	BEQ checker60LeftRightEnd	;exit <=
 	CMP r0, #0x14	;right wall
 	ITTT EQ
 	SUBEQ r0, #1	;move 1 left
-	MOVEQ r3, #-1	;set LeftRight to right
+	MOVEQ r3, #-1	;set LeftRight to left
 	BEQ checker60LeftRightEnd	;exit <=
 	ADD r0, r3	;set x for check
 	CMP r1, #0x01
@@ -750,6 +756,8 @@ checker60LeftRight:
 	PUSH {r3, r4}
 	BL getBlockLive
 	CMP r4, #1
+	ITT NE
+	POPNE {r3, r4}
 	BNE checker60UpDownEnd	;if block dead exit
 	BL blockHit
 	POP {r3, r4}
@@ -759,7 +767,6 @@ checker60LeftRight:
 	ITE EQ
 	MOVEQ r3, #-1	;then set left
 	MOVNE r3, #1	;else set right
-	POP {lr}
 checker60LeftRightEnd:
 	POP {pc}
 	;############################################# checker60LeftRight END #############################################
@@ -772,14 +779,18 @@ checker60Up2:
 	CMP r1, #0x01	;row 1
 	ITT EQ
 	SUBEQ r1, #1	;move up 1
-	POPEQ {lr}			;exit <=
+	POPEQ {pc}			;exit <=
 checker60Down2:
 	CMP r1, #0x10	;if bottom row
+	ITTTT EQ
+	ADDEQ r3, #1	;reset LeftRight
+	ADDEQ r4, #1	;reset UpDown
+	POPEQ {lr}
 	BEQ lifelost
 	CMP r1, #0x0F	;if above paddle
 	BNE checker60UpDownBlock2
 	LDR r5, ptr_to_paddleX
-	LDRB r2, [r5]		;get left x cord
+	LDRB r2, [r5, #1]		;get left x cord
 	ADD r5, r2, #4		;get right x cord
 	CMP r2, r0 		;if left of paddle
 	BGT checker60UpDownBlock2
@@ -800,6 +811,8 @@ checker60UpDownBlock2:
 	PUSH {r3, r4}
 	BL getBlockLive
 	CMP r4, #1
+	ITT NE
+	POPNE {r3, r4}
 	BNE checker60UpDownEnd2	;if block dead exit
 	BL blockHit
 	POP {r3, r4}
@@ -882,49 +895,10 @@ blockHit:
 	MOV r0, r2
 	LDR r1, ptr_to_scorestr
 	BL int2string
+	ADD r11, #-1		;update block counter
 	POP {r0, r1, r4}
 	POP {pc}
 	;############################################# blockHit END #############################################
-
-
-checker_walls:
-	PUSH {lr}
-
-	CMP r0, #0x00
-	BNE rightwall
-	CMP r3, #0
-	BNE rightwall
-	ADD r3, #2
-	B topwall
-rightwall:
-	CMP r0, #0x14
-	BNE topwall
-	CMP r3, #2
-	BNE topwall
-	SUB r3, #2
-	B topwall
-topwall:
-	CMP r1, #0x01
-	BLT bottomwall
-	CMP r4, #0x00
-	BNE bottomwall
-	SUB r4, #2
-bottomwall:
-	BL paddle
-	CMP r1, #0x0F
-	BGT checker_walls_end
-	CMP r4, #0x02
-	BNE checker_walls_end
-
-
-checker_walls_end:
-	POP {pc}
-	;############################################# checker_walls END #############################################
-
-checker_block:
-	PUSH {lr}
-	POP {pc}
-	;############################################# checker_block END #############################################
 
 decode:
 	PUSH {lr}

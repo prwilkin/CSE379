@@ -113,6 +113,7 @@ gpio_interrupt_init:
 	PUSH {lr}
 	;ENABLING SWITCH 1 ON TIVA BOARD
 	;enabling clock for Port F
+
 	LDR r0, SYSCTL				;load memory address of clock to r0
     LDR r1, [r0, #0x608]		;load content of r0 with offset of 0x608 to r1
     ORR r1, r1, #0x20			;set bit 6 to enable clock for Port F
@@ -287,6 +288,8 @@ timer_interrupt_init:
 
 timer_interrupt_init_RNG:
 	PUSH {lr}
+	MOV r8, #0xF	;for interupt delay
+
 	;Enable Clock for Timer (Tx) where x is timer number
 	MOV r0, #0xE000				;move memory address of Clock base address to r0
 	MOVT r0, #0x400F
@@ -314,8 +317,7 @@ timer_interrupt_init_RNG:
 	;Setup Interval Period
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
 	;MOV r1, #0x064				;set r1 as 6250 to make the Timer interrupt to start at 1 millisecond
-	MOV r1, #0x1200				;set r1 as 8000000 to make the Timer interrupt to start at 1 second
-	MOVT r1, #0x007A
+	MOV r1, #0xFFFF				;set r1 as 60 to make the Timer interrupt to start at .000003 second
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Setup Timer to Interrupt Processor
