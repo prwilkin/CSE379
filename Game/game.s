@@ -63,13 +63,14 @@ start:
 	BL DisableT			;pause timer until game actually starts
 	BL timer_interrupt_init_RNG		;disabled by default
 	BL start_printer
-	;BL read_from_push_btns
+	BL read_from_push_btns
 	MOV r11, #0		;block counter
 	BL makeBlocks
 	BL DisableRNG	;disable rng
 	BL EnableT		;start game
 	MOV r7, #0		;pause reg 1 is pause 0 is running
-	MOV r6, #0x7	;lives reg also used as direct output for lives
+	MOV r6, #0xF	;lives reg also used as direct output for lives
+	BL Four_LED_subroutine
 	B wait
 
 wait:
@@ -106,16 +107,19 @@ newLevel:
 	POP {pc}
 
 lifelost:
-	CMP r6, #0x1	;1 life
-	ITT EQ
-	SUBEQ r6, #1
+	CMP r6, #0x00	;0 lifes
+	IT EQ
 	BEQ game_over
-	CMP r6, #0x3	;2 lives
-	IT EQ
-	SUBEQ r6, #2
-	CMP r6, #0x7	;3 lives
-	IT EQ
-	SUBEQ r6, #4
+	;CMP r6, #0x3	;2 lives
+	;IT EQ
+	;SUBEQ r6, #2
+	;CMP r6, #0x7	;3 lives
+	;IT EQ
+	;SUBEQ r6, #4
+	;CMP r6, #0xF	;4 lives
+	;IT EQ
+	;SUBEQ r6, #0x8
+	BL Four_LED_subroutine
 	MOV r0, #0x0A06
 	LDR r1, ptr_to_cordinatesNow
 	STRH r0, [r1]
@@ -136,7 +140,7 @@ nextLevel:
 
 makeBlocks:
 	PUSH {lr}
-	BL EnableRNG
+	;BL EnableRNG
 	LDR r0, ptr_to_blocklvls
 	LDRB r0, [r0]
 	CMP r0, #1		;1st level of blocks
@@ -159,10 +163,25 @@ makeBlocks:
 	LDRGE r4, ptr_to_blocksrow5
 	MOVGE r5, #0
 	BLGE BeginBlockLoop
-	BL DisableRNG
+	;BL DisableRNG
 	POP {pc}
 
 BlockCreate:
+	MOV r10, #5					;r10 = 5 to be use to mod 5
+ADDValue:
+	ADD r8, #0x0043				;add some value to r6 to change up the delay
+DELAY:
+    SUBS r8, r8, #1				;do a loop subracting r6 by 1 and setting r6 with the new value when it done subtracting
+    BNE DELAY					;if r6 does not equal zero go back to loop to keep subtracting
+
+	LDR r1, [r0, #0x050]		;load Timer A Value to r1
+	MOV r1, r1, LSR #10
+	;MOV r5, r9					;copy r9 to r8
+	SDIV r2, r1, r10			;divide Timer A Value by 5 to r2
+	MUL r3, r2, r10				;multiply r2 with 5 to r3
+	SUB r9, r1, r3				;subtract Timer A Value with the value of r3 to get the value of Timer A Value mod 5
+	CMP r9, r7					;compare r9 and r8
+	BEQ ADDValue				;branch to delay if r9 and r8 are equal to make sure pattern is randomized and no repeated number
 	MOV r2, r4	;move addy to r2
 	MOV r3, r9		;store color
 	MOV r1, #2
@@ -175,15 +194,16 @@ BlockCreate:
 	ADD r11, #1		;add block to block counter
 	MOV r7, r9
 	MOV r9, #10
-	BL EnableRNG
+	;BL EnableRNG
 	B BlockLoop
 
 BeginBlockLoop:
 	PUSH {r0, lr}
 	;BL EnableRNG
 BlockLoop:
-	CMP r9, #5
-	BLT BlockCreate
+	;CMP r9, #5
+	;BLT BlockCreate
+	B BlockCreate
 	CMP r5, #7
 	BLT	BlockLoop
 	POP {r0, pc}
