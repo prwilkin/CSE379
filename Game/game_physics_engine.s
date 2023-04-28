@@ -673,7 +673,7 @@ checker60Up:
 	SUBEQ r1, #1	;move up 1
 	ADDEQ r0, r3		;move x accordingly
 	POPEQ {lr}			;lr to game
-	;BEQ checker60end		;exit <=
+	BEQ checker60Flip		;exit <=
 	CMP r1, #0x00	;row 0
 	BNE	checker60UpDownBlock
 	ADD r1, #1		;move down 1
@@ -824,6 +824,13 @@ checker60UpDownBlock2:
 checker60UpDownEnd2:
 	POP {pc}
 	;############################################# checker60LeftRight END #############################################
+
+checker60Flip:
+	CMP r3, #1
+	ITE EQ			;if LeftRight is right
+	MOVEQ r3, #-1	;then set left
+	MOVNE r3, #1	;else set right
+	BEQ checker60end
 
 getBlockLive:
 	PUSH {lr}	;takes r0 & r1 as x & y // must be modified for the block you want to check before passing on
