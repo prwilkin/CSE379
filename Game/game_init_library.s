@@ -321,15 +321,15 @@ timer_interrupt_init_RNG:
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Setup Timer to Interrupt Processor
-	LDR r1, [r0, #0x018]		;load content of r0 with offset with 0x018 to r1
-	ORR r1, #0x1				;set bit 0 to enable Timer to Interrupt Processor
-	STR r1, [r0, #0x018]		;store r1 into r0 to enable Timer to Interrupt Processor
+	;LDR r1, [r0, #0x018]		;load content of r0 with offset with 0x018 to r1
+	;ORR r1, #0x1				;set bit 0 to enable Timer to Interrupt Processor
+	;STR r1, [r0, #0x018]		;store r1 into r0 to enable Timer to Interrupt Processor
 
 	;Configure Processor to Allow Timer to Interrupt Processor
-	LDR r0, EN0					;move memory address of EN0 base address to r0
-	LDR r1, [r0, #0x100]		;load content of r0 with offset of 0x100 to r1
-	ORR r1, #0x200000			;set bit 19 to Timer0 to Interrupt Processor
-	STR r1, [r0, #0x100]		;store r1 into r0 to allow Timer0 to Interrupt Processor
+	;LDR r0, EN0					;move memory address of EN0 base address to r0
+	;LDR r1, [r0, #0x100]		;load content of r0 with offset of 0x100 to r1
+	;ORR r1, #0x200000			;set bit 19 to Timer0 to Interrupt Processor
+	;STR r1, [r0, #0x100]		;store r1 into r0 to allow Timer0 to Interrupt Processor
 
 	;Enable Timer
 	;MOV r0, #0x1000				;move memory address of Timer0 base address to r0
