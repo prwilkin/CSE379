@@ -167,21 +167,27 @@ makeBlocks:
 	POP {pc}
 
 BlockCreate:
-	MOV r10, #5					;r10 = 5 to be use to mod 5
+	NOP
 ADDValue:
-	ADD r8, #0x0043				;add some value to r6 to change up the delay
+	MOV r0, #0x0000
+	MOVT r0, #0x4003
+	LDRB r8, [r0, #0x050]		;add some value to r6 to change up the delay
 DELAY:
     SUBS r8, r8, #1				;do a loop subracting r6 by 1 and setting r6 with the new value when it done subtracting
     BNE DELAY					;if r6 does not equal zero go back to loop to keep subtracting
 
+	MOV r10, #5
+	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
+	MOVT r0, #0x4003
 	LDR r1, [r0, #0x050]		;load Timer A Value to r1
-	MOV r1, r1, LSR #10
+	MOV r1, r1, LSR #5
 	;MOV r5, r9					;copy r9 to r8
 	SDIV r2, r1, r10			;divide Timer A Value by 5 to r2
 	MUL r3, r2, r10				;multiply r2 with 5 to r3
 	SUB r9, r1, r3				;subtract Timer A Value with the value of r3 to get the value of Timer A Value mod 5
 	CMP r9, r7					;compare r9 and r8
 	BEQ ADDValue				;branch to delay if r9 and r8 are equal to make sure pattern is randomized and no repeated number
+
 	MOV r2, r4	;move addy to r2
 	MOV r3, r9		;store color
 	MOV r1, #2
@@ -202,8 +208,8 @@ BeginBlockLoop:
 	;BL EnableRNG
 BlockLoop:
 	;CMP r9, #5
-	;BLT BlockCreate
-	B BlockCreate
+	CMP r5, #7
+	BLT BlockCreate
 	CMP r5, #7
 	BLT	BlockLoop
 	POP {r0, pc}
