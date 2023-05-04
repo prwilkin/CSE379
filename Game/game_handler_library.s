@@ -16,6 +16,9 @@
 	.global read_from_push_btns
 	.global Four_LED_subroutine
 	.global Timer_Handler
+	.global Timer_Level_2
+	.global Timer_Level_3
+	.global Timer_Level_4
 	.global Timer_Handler_RNG
 	.global EnableRNG
 	.global DisableRNG
@@ -287,6 +290,96 @@ Timer_Handler:
 	POP {lr}
 	BX lr       	; Return
 	;############################################# Timer_Handler END #############################################
+
+;TIMER_LEVEL_2 SUBROUTINE
+Timer_Level_2:
+	PUSH {lr}
+
+	;Disable Timer
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
+	BIC r1, #0x1				;clear bit 0 to disable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer0
+
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
+	MOV r1, #0xB800				;set r1 as 768000 to make the Timer interrupt to start at 0.48 second
+	MOVT r1, #0x000B
+	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
+
+	;Enable Timer
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
+
+	MOV r1, #0xFF
+
+	POP {pc}
+	;############################################# Timer_Level_2 END #############################################
+
+;TIMER_LEVEL_3 SUBROUTINE
+Timer_Level_3:
+	PUSH {lr}
+
+		;Disable Timer
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
+	BIC r1, #0x1				;clear bit 0 to disable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer0
+
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
+	MOV r1, #0x3B00				;set r1 as 736000 to make the Timer interrupt to start at 0.46 second
+	MOVT r1, #0x000B
+	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
+
+	;Enable Timer
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
+
+	MOV r1, #0xFF
+
+	POP {pc}
+	;############################################# Timer_Level_3 END #############################################
+
+	;TIMER_LEVEL_4 SUBROUTINE
+Timer_Level_4:
+	PUSH {lr}
+
+		;Disable Timer
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
+	BIC r1, #0x1				;clear bit 0 to disable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer0
+
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
+	MOV r1, #0xBE00				;set r1 as 704000 to make the Timer interrupt to start at 0.44 second
+	MOVT r1, #0x000A
+	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
+
+	;Enable Timer
+	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
+	MOVT r0, #0x4003
+	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
+	ORR r1, #0x1				;set bit 0 to enable Timer0
+	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer0
+
+	MOV r1, #0xFF
+
+	POP {pc}
+	;############################################# Timer_Level_4 END #############################################
 
 Timer_Handler_RNG:
 	PUSH {lr}
