@@ -13,6 +13,7 @@ gamelevel:	.byte 0x01
 	.global cordinatesNow		;game_physics_engine
 	.global cordinatesNext		;game_physics_engine
 	.global blocklvls			;game_physics_engine
+	.global ballcolor		;game_printer_and_sub
 
 	.text
 	.global start
@@ -30,12 +31,16 @@ gamelevel:	.byte 0x01
 	.global RGB_LIGHT_init				;game_init_library
 	.global timer_interrupt_init		;game_init_library
 	.global timer_interrupt_init_RNG	;game_init_library
+	.global Timer_Level_2		;game_handler_library
+	.global Timer_Level_3		;game_handler_library
+	.global Timer_Level_4		;game_handler_library
 	.global read_from_push_btns	;game_handler_library
 	.global Four_LED_subroutine	;game_handler_library
-	.global EnableRNG
-	.global DisableRNG
+	.global EnableRNG			;game_handler_library
+	.global DisableRNG			;game_handler_library
 	.global DisableT			;game_handler_library
 	.global EnableT				;game_handler_library
+	.global rgbLED				;game_handler_library
 	.global start_printer	;game_printer_and_sub
 	.global gameprinter		;game_printer_and_sub
 	.global checkermanager	;game_physics_engine
@@ -50,6 +55,7 @@ ptr_to_blocksrow5:		.word blocksrow5
 ptr_to_cordinatesNow:	.word cordinatesNow
 ptr_to_cordinatesNext:	.word cordinatesNext
 ptr_to_blocklvls:		.word blocklvls
+ptr_to_ballcolor:		.word ballcolor
 **************************************************************************************************
 
 start:
@@ -120,11 +126,15 @@ lifelost:
 	;IT EQ
 	;SUBEQ r6, #0x8
 	BL Four_LED_subroutine
-	MOV r0, #0x0A06
+	MOV r0, #0x0A06		;move cordiinates to center
 	LDR r1, ptr_to_cordinatesNow
 	STRH r0, [r1]
 	LDR r1, ptr_to_cordinatesNext
 	STRH r0, [r1]
+	MOV r0, #0x00
+	LDR r1, ptr_to_ballcolor ;update ball color
+	STRB r0, [r1]
+	BL rgbLED
 	POP {pc}
 
 nextLevel:
@@ -135,6 +145,19 @@ nextLevel:
 	LDR r1, ptr_to_cordinatesNext
 	STRH r0, [r1]
 	BL makeBlocks
+	LDR r1, ptr_to_gamelevel
+	LDRB r0, [r1]
+	ADD r0, #1
+	STRB r0, [r1]
+	CMP r1, #2
+	IT EQ
+	BLEQ  Timer_Level_2
+	CMP r1, #3
+	IT EQ
+	BLEQ  Timer_Level_3
+	CMP r1, #4
+	IT EQ
+	BLEQ  Timer_Level_4
 	BL EnableT		;start game
 	B wait
 
@@ -215,5 +238,13 @@ BlockLoop:
 	POP {r0, pc}
 
 game_over:
+	BL DisableT
+	BL Four_LED_subroutine
+	MOV r0, #0xFFFF
+	LDR r1, ptr_to_cordinatesNow
+	STRH r0, [r1]
+	LDR r1, ptr_to_cordinatesNext
+	STRH r0, [r1]
+	BL gameprinter
 	NOP
 .end
