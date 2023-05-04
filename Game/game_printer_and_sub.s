@@ -361,7 +361,7 @@ ballPrint:
 	LDR r3, ptr_to_ballcolor
 	LDRB r3, [r3]
 	BL colorBall		;set ball color
-	MOV r0, #0x2A		;ascii *
+	MOV r0, #0x40		;ascii *
 	BL output_character
 	MOV r3, #0
 	BL colorBall		;back to default color
