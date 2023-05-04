@@ -630,6 +630,8 @@ blockCheck45cornerBlock:
 	CMP r4, #1
 	ITT NE
 	POPNE {r3, r4}
+	;ADDNE r3, #1
+	;ADDNE r4, #1
 	POPNE {pc}
 	BL blockHit		;if live note in r2
 	MOV r2, #1
