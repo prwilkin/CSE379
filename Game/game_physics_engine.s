@@ -6,10 +6,13 @@
 	.global blocksrow5
 	.global cordinatesNow
 	.global cordinatesNext
+	.global LeftRight
+	.global UpDown
+	.global angle
 	.global paddleX
 	.global blocklvls
 
-blocksrow2:			.byte 0xA1, 0x61, 0x21, 0x81, 0x61, 0xA1, 0x41	;init alive with no color	1st 4 bits are for live
+blocksrow2:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init alive with no color	1st 4 bits are for live
 blocksrow3:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color	2nd 4 bits are for color
 blocksrow4:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
 blocksrow5:			.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	;init dead with no color
@@ -19,7 +22,7 @@ angle:				.byte 0x01		;						180=1 60=2 45=1		  | angle = paddle section
 cordinatesNow:		.half 0x0A06
 cordinatesNext: 	.half 0x0A07
 paddleX:			.half 0x0810
-blocklvls:			.byte 0x01
+blocklvls:			.byte 0x04
 **********************************from exterior file**********************************************
 	.global ballcolor	;game_printer_and_sub
 	.global scorestr	;game_printer_and_sub

@@ -4,6 +4,7 @@
 	.global paddleX		;game_physics_engine
 	.global blocklvls	;game_physics_engine
 	.global ballcolor	;game_printer_and_sub
+	.global restart_game	;game
 **************************************************************************************************
 
 	.text
@@ -61,7 +62,7 @@ UART0_Handler:
 Q:
 	CMP r0, #0x71	;if q end game
 	BNE D
-	B end_game
+	B quit
 
 D:
 	CMP r0, #0x64	;if D move 1 right
@@ -77,13 +78,18 @@ D:
 
 A:
 	CMP r0, #0x61	;if A move 1 left
-	BNE UART0_Handler_end
+	BNE key8
 	LDR r0, ptr_to_paddleX
 	LDRH r1, [r0]
 	CMP r1, #0x0010
 	BEQ UART0_Handler_end
 	SUB r1, #0x0100
 	STRH r1, [r0]
+
+key8:
+	CMP r0, #0x72	;if 8 then restart
+	BNE UART0_Handler_end
+	BL restart_game
 
 UART0_Handler_end:
 	POP {lr}
@@ -465,8 +471,11 @@ EnableT:
 GotoBeginBlockLoop:
 	B BeginBlockLoop
 
-end_game:
+quit:
+	NOP
 	MOV r0, #0
 	LDR r1, SYSCTL
 	STR r0, [r1, #GPIODATA]
+	NOP
+
 .end

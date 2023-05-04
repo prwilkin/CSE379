@@ -1,7 +1,8 @@
 	.data
 ;this file contains relevant subs and the printer function
-	.global ballcolor
 	.global scorestr
+	.global gameOver
+	.global ballcolor
 **********************************from exterior file**********************************************
 	.global paddleX			;game_physics_engine
 	.global cordinatesNow	;game_physics_engine
@@ -17,10 +18,12 @@ scorestr:		.string 0x30, 0x00, 0x00, 0x00, 0x00, 0x00
 topNbottom: 	.string "+---------------------+",0x00
 center:			.string "|                     |",0x00
 paddle:			.string "|        =====        |",0x00
-startrow5:		.string "|     Start Game:     |",0x00
-startrow6:		.string "|    Press switches   |",0x00
-startrow7:		.string "|   for block levels  |",0x00
+startrow5:		.string "|Start Game: Press    |",0x00
+startrow6:		.string "|switches for block   |",0x00
+startrow7:		.string "|levels. A & D for LR.|",0x00
+startrow8:		.string "|Q to quit when paused|",0x00
 pause:			.string "PAUSE",0x00
+gameOver:		.string "|  Game Over: Press 8 |",0x00
 row0:	.half 0x0000, 0x0100, 0x0200, 0x0300, 0x0400, 0x0500, 0x0600, 0x0700, 0x0800, 0x0900, 0x0A00, 0x0B00, 0x0C00, 0x0D00, 0x0E00, 0x0F00, 0x1000, 0x1100, 0x1200, 0x1300, 0x1400
 row1:	.half 0x0001, 0x0101, 0x0201, 0x0301, 0x0401, 0x0501, 0x0601, 0x0701, 0x0801, 0x0901, 0x0A01, 0x0B01, 0x0C01, 0x0D01, 0x0E01, 0x0F01, 0x1001, 0x1101, 0x1201, 0x1301, 0x1401
 row2:	.half 0x0002, 0x0102, 0x0202, 0x0302, 0x0402, 0x0502, 0x0602, 0x0702, 0x0802, 0x0902, 0x0A02, 0x0B02, 0x0C02, 0x0D02, 0x0E02, 0x0F02, 0x1002, 0x1102, 0x1202, 0x1302, 0x1402
@@ -85,6 +88,7 @@ ptr_to_startscore:		.word startscore
 ptr_to_startrow5:		.word startrow5
 ptr_to_startrow6:		.word startrow6
 ptr_to_startrow7:		.word startrow7
+ptr_to_startrow8:		.word startrow8
 ptr_to_pause:			.word pause
 ptr_to_row0:			.word row0
 ptr_to_row1:            .word row1
@@ -361,7 +365,7 @@ ballPrint:
 	LDR r3, ptr_to_ballcolor
 	LDRB r3, [r3]
 	BL colorBall		;set ball color
-	MOV r0, #0x40		;ascii *
+	MOV r0, #0x40		;ascii @
 	BL output_character
 	MOV r3, #0
 	BL colorBall		;back to default color
@@ -494,7 +498,7 @@ start_printer:
 	LDR r0, ptr_to_startrow7
 	BL output_string
 	BL new_line
-	LDR r0, ptr_to_center
+	LDR r0, ptr_to_startrow8
 	BL output_string	;row 8
 	BL new_line
 	LDR r0, ptr_to_center

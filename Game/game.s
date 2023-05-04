@@ -12,12 +12,19 @@ gamelevel:	.byte 0x01
 	.global blocksrow5			;game_physics_engine
 	.global cordinatesNow		;game_physics_engine
 	.global cordinatesNext		;game_physics_engine
+	.global LeftRight			;game_physics_engine
+	.global UpDown				;game_physics_engine
+	.global angle				;game_physics_engine
+	.global paddleX				;game_physics_engine
 	.global blocklvls			;game_physics_engine
+	.global scorestr		;game_printer_and_sub
+	.global gameOver		;game_printer_and_sub
 	.global ballcolor		;game_printer_and_sub
 
 	.text
 	.global start
 	.global game
+	.global restart_game
 	.global lifelost
 	.global BlockCreate
 	.global BeginBlockLoop
@@ -43,18 +50,26 @@ gamelevel:	.byte 0x01
 	.global rgbLED				;game_handler_library
 	.global start_printer	;game_printer_and_sub
 	.global gameprinter		;game_printer_and_sub
-	.global checkermanager	;game_physics_engine
-	.global encodeBlock		;game_physics_engine
+	.global output_string	;game_printer_and_sub
+	.global checkermanager		;game_physics_engine
+	.global encodeBlock			;game_physics_engine
 **************************************************************************************************
+ptr_to_score:			.word score
 ptr_to_gamelevel:		.word gamelevel
 **********************************from exterior file**********************************************
+ptr_to_scorestr:		.word scorestr
 ptr_to_blocksrow2:		.word blocksrow2
 ptr_to_blocksrow3:		.word blocksrow3
 ptr_to_blocksrow4:		.word blocksrow4
 ptr_to_blocksrow5:		.word blocksrow5
+ptr_to_LeftRight:		.word LeftRight
+ptr_to_UpDown:			.word UpDown
+ptr_to_angle:			.word angle
 ptr_to_cordinatesNow:	.word cordinatesNow
 ptr_to_cordinatesNext:	.word cordinatesNext
+ptr_to_paddleX:			.word paddleX
 ptr_to_blocklvls:		.word blocklvls
+ptr_to_gameOver:		.word gameOver
 ptr_to_ballcolor:		.word ballcolor
 **************************************************************************************************
 
@@ -69,10 +84,9 @@ start:
 	BL DisableT			;pause timer until game actually starts
 	BL timer_interrupt_init_RNG		;disabled by default
 	BL start_printer
-	BL read_from_push_btns
+	;BL read_from_push_btns
 	MOV r11, #0		;block counter
 	BL makeBlocks
-	BL DisableRNG	;disable rng
 	BL EnableT		;start game
 	MOV r7, #0		;pause reg 1 is pause 0 is running
 	MOV r6, #0xF	;lives reg also used as direct output for lives
@@ -104,7 +118,7 @@ newLevel:
 	STRB r1, [r0]
 	;do timer increase
 	BL makeBlocks
-	MOV r7, #0	;fix pause reg
+	MOV r7, #0			;fix pause reg
 	MOV r0, #0x0A06			;reset ball
 	LDR r1, ptr_to_cordinatesNow
 	STRH r0, [r1]
@@ -112,21 +126,51 @@ newLevel:
 	STRH r0, [r1]
 	POP {pc}
 
+restart_game:
+	LDR r1, ptr_to_score
+	MOV r0, #0x0000
+	STRH r0, [r1]		;reset score to 0
+	LDR r1, ptr_to_scorestr
+	MOV r0, #0x30		;reset score string to 0 null null null null null
+	STRB r0, [r1], #1
+	MOV r0, #0x00
+	STRB r0, [r1], #1
+	STRB r0, [r1], #1
+	STRB r0, [r1], #1
+	STRB r0, [r1], #1
+	STRB r0, [r1]
+	LDR r1, ptr_to_cordinatesNow
+	MOV r0, #0x0A06
+	STRH r0, [r1]		;rest cordinates
+	LDR r1, ptr_to_cordinatesNext
+	MOV r0, #0x0A07
+	STRH r0, [r1]
+	LDR r1, ptr_to_LeftRight
+	MOV r0, #0x01
+	STRB r0, [r1]		;reset directions and angle
+	LDR r1, ptr_to_UpDown
+	MOV r0, #0x00
+	STRB r0, [r1]
+	LDR r1, ptr_to_angle
+	MOV r0, #0x01
+	STRB r0, [r1]
+	LDR r1, ptr_to_gamelevel
+	MOV r0, #0x01
+	STRB r0, [r1]		;reset game level
+	LDR r1, ptr_to_ballcolor
+	MOV r0, #0x00
+	STRB r0, [r1]		;reset ball color
+	LDR r1, ptr_to_paddleX
+	MOV r0, #0x0810
+	STRH r0, [r1]		;reset paddleX
+
+
 lifelost:
 	CMP r6, #0x00	;0 lifes
 	IT EQ
 	BEQ game_over
-	;CMP r6, #0x3	;2 lives
-	;IT EQ
-	;SUBEQ r6, #2
-	;CMP r6, #0x7	;3 lives
-	;IT EQ
-	;SUBEQ r6, #4
-	;CMP r6, #0xF	;4 lives
-	;IT EQ
-	;SUBEQ r6, #0x8
-	BL Four_LED_subroutine
-	MOV r0, #0x0A06		;move cordiinates to center
+	BL Four_LED_subroutine	;adjust leds
+	MOV r0, #0x0A06			;move cordiinates to center
 	LDR r1, ptr_to_cordinatesNow
 	STRH r0, [r1]
 	LDR r1, ptr_to_cordinatesNext
@@ -134,7 +178,7 @@ lifelost:
 	MOV r0, #0x00
 	LDR r1, ptr_to_ballcolor ;update ball color
 	STRB r0, [r1]
-	BL rgbLED
+	BL rgbLED		;update rgb led
 	POP {pc}
 
 nextLevel:
@@ -239,12 +283,15 @@ BlockLoop:
 
 game_over:
 	BL DisableT
-	BL Four_LED_subroutine
 	MOV r0, #0xFFFF
+	BL Four_LED_subroutine
+	LDR r0, ptr_to_gameOver
+	BL output_string
 	LDR r1, ptr_to_cordinatesNow
 	STRH r0, [r1]
 	LDR r1, ptr_to_cordinatesNext
 	STRH r0, [r1]
 	BL gameprinter
-	NOP
+	B wait
+
 .end
