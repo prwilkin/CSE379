@@ -86,7 +86,7 @@ start:
 	BL makeBlocks
 	BL EnableT		;start game
 	MOV r7, #0		;pause reg 1 is pause 0 is running
-	MOV r6, #0xF	;lives reg also used as direct output for lives
+	MOV r6, #0xFF	;lives reg also used as direct output for lives
 	BL Four_LED_subroutine
 	B wait
 
@@ -175,7 +175,7 @@ restart_game:
 	MOV r11, #0		;block counter
 	BL makeBlocks
 	MOV r7, #0		;pause reg 1 is pause 0 is running
-	MOV r6, #0xF	;lives reg also used as direct output for lives
+	MOV r6, #0xFF	;lives reg also used as direct output for lives
 	BL Four_LED_subroutine
 	BL EnableT		;start game
 	POP {PC}
