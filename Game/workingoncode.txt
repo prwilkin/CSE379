@@ -644,69 +644,78 @@ endswitch:
 	BX lr       	; Return
 	;############################################# Switch_Handler END #############################################
 
+
 Four_LED_subroutine:
-	PUSH {lr}
-	CMP r6, #0xF
-	BEQ setlight1
+	PUSH {lr}				;lives stored in r6
+	CMP r6, #0xFF
+	BEQ set4lives
 	BNE Threelives
+set4lives:
+	MOV r6, #0xF
+	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
+	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
+	BIC r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
+	ORR r1, r6					;set bit 0-3 to set all the 4 LEDs on the ALICE Board on
+	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set all the 4 LEDS on
+	B end4light					;branch to end4light to end the subroutine
 setlight1:
-	LDR r0, GPIO_PORT_B
-	LDR r1, [r0, #GPIODATA]
-	BIC r1, #0x00
-	ORR r1, r6
-	STR r1, [r0, #GPIODATA]
-	MOV r6, #0x7
-	B end4light
+	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
+	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
+	BIC r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
+	ORR r1, r6					;set bit 0-3 to set all the 4 LEDs on the ALICE Board on
+	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set all the 4 LEDS on
+	MOV r6, #0x7				;set r6 to 0x7 because next time the player lose a life it will go back here to set 3 LED on
+	B end4light					;branch to end4light to end the subroutine
 Threelives:
-	CMP r6, #0x7
-	BEQ setlight2
-	BNE Twolives
+	CMP r6, #0xF				;compare if r6 is 0x7
+	BEQ setlight2				;if r6 is 0x7 go to setlight2
+	BNE Twolives				;if not go to Twolives
 setlight2:
-	LDR r0, GPIO_PORT_B
-	LDR r1, [r0, #GPIODATA]
-	AND r1, #0x00
-	ORR r1, r6
-	STR r1, [r0, #GPIODATA]
-	MOV r6, #0x3
-	B end4light
+	MOV r6, #0x7
+	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
+	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
+	AND r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
+	ORR r1, r6					;set bit 0-2 to set 3 LEDs on the ALICE Board on
+	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set 3 LEDS on
+	B end4light					;branch to end4light to end the subroutine
 Twolives:
-	CMP r6, #0x3
-	BEQ setlight3
-	BNE Onelives
+	CMP r6, #0x7				;compare if r6 is 0x3
+	BEQ setlight3				;if r6 is 0x7 go to setlight3
+	BNE Onelives				;if not go to Onelives
 setlight3:
-	LDR r0, GPIO_PORT_B
-	LDR r1, [r0, #GPIODATA]
-	AND r1, #0x00
-	ORR r1, r6
-	STR r1, [r0, #GPIODATA]
-	MOV r6, #0x1
-	B end4light
+	MOV r6, #0x3
+	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
+	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
+	AND r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
+	ORR r1, r6					;set bit 0-1 to set 2 LEDs on the ALICE Board on
+	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set 2 LEDS on
+	B end4light					;branch to end4light to end the subroutine
 Onelives:
-	CMP r6, #0x1
-	BEQ setlight4
-	BNE Zerolives
+	CMP r6, #0x3				;compare if r6 is 0x1
+	BEQ setlight4				;if r6 is 0x7 go to setlight4
+	BNE Zerolives				;if not go to Zerolives
 setlight4:
-	LDR r0, GPIO_PORT_B
-	LDR r1, [r0, #GPIODATA]
-	AND r1, #0x00
-	ORR r1, r6
-	STR r1, [r0, #GPIODATA]
-	MOV r6, #0x0
-	B end4light
+	MOV r6, #0x1
+	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
+	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
+	AND r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
+	ORR r1, r6					;set bit 0 to set 1 LEDs on the ALICE Board on
+	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set 1 LEDS on
+	B end4light					;branch to end4light to end the subroutine
 Zerolives:
-	CMP r6, #0x0
-	BEQ setlight5
+	CMP r6, #0x1				;compare if r6 is 0x0
+	BEQ setlight5				;if r6 is 0x7 go to setlight4
 setlight5:
-	LDR r0, GPIO_PORT_B
-	LDR r1, [r0, #GPIODATA]
-	AND r1, #0x00
-	ORR r1, r6
-	STR r1, [r0, #GPIODATA]
+	MOV r6, #0x0
+	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
+	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
+	AND r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
+	ORR r1, r6					;clear all bit to set 0 LEDs on the ALICE Board on
+	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set 0 LEDS on
 end4light:
 	POP {lr}
 	MOV pc, lr
 	;############################################# Four_LED_subroutine END #############################################
-
 
 Timer_Handler:
 	PUSH {lr}
