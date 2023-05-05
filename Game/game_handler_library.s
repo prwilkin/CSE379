@@ -9,7 +9,7 @@
 
 	.text
 ;handler subroutines: (in order of apperance in file)
-;	uart, rgbLED, switch, read push button, four led, timer, timer rng, EnableRNG, DisableRNG
+;	uart, rgbLED, switch, read push button, four led, timer,
 ;	simple read char, disable timer, & enable timer
 	.global UART0_Handler
 	.global rgbLED
@@ -20,9 +20,6 @@
 	.global Timer_Level_2
 	.global Timer_Level_3
 	.global Timer_Level_4
-	.global Timer_Handler_RNG
-	.global EnableRNG
-	.global DisableRNG
 	.global simple_read_character
 	.global DisableT
 	.global EnableT
@@ -320,8 +317,8 @@ Timer_Level_2:
 	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0xB800				;set r1 as 768000 to make the Timer interrupt to start at 0.48 second
-	MOVT r1, #0x000B
+	MOV r1, #0x5C00				;set r1 as 4480000 to make the Timer interrupt to start at 0.28 second
+	MOVT r1, #0x0044
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Enable Timer
@@ -350,8 +347,8 @@ Timer_Level_3:
 	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0x3B00				;set r1 as 736000 to make the Timer interrupt to start at 0.46 second
-	MOVT r1, #0x000B
+	MOV r1, #0x7A00				;set r1 as 4160000 to make the Timer interrupt to start at 0.26 second
+	MOVT r1, #0x003F
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Enable Timer
@@ -380,8 +377,8 @@ Timer_Level_4:
 	MOV r0, #0x0000				;move memory address of Timer0 base address to r0
 	MOVT r0, #0x4003
 	LDR r1, [r0, #0x028]		;load content of r0 with offset with 0x028 to r1
-	MOV r1, #0xBE00				;set r1 as 704000 to make the Timer interrupt to start at 0.44 second
-	MOVT r1, #0x000A
+	MOV r1, #0x9800				;set r1 as 3840000 to make the Timer interrupt to start at 0.24 second
+	MOVT r1, #0x003A
 	STR r1, [r0, #0x028]		;store r1 into r0 to make Timer interrupt start every 1 second
 
 	;Enable Timer
@@ -395,56 +392,6 @@ Timer_Level_4:
 
 	POP {pc}
 	;############################################# Timer_Level_4 END #############################################
-
-Timer_Handler_RNG:
-	PUSH {lr}
-	PUSH {r10,r5}
-
-	MOV r10, #5					;r10 = 5 to be use to mod 5
-	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
-	MOVT r0, #0x4003
-	LDR r1, [r0, #0x024]		;load content of r0 with offset of 0x024 to r1
-	ORR r1, #0x1				;set bit 0 to clear Timer1 interrupt so Timer1 interrupt can be interrupted again
-	STR r1, [r0, #0x024]		;store r1 into r0 to clear Timer0 interrupt so Timer1 interrupt can be interrupted again
-
-ADDValue:
-	ADD r8, #0x0043				;add some value to r6 to change up the delay
-DELAY:
-    SUBS r8, r8, #1				;do a loop subracting r6 by 1 and setting r6 with the new value when it done subtracting
-    BNE DELAY					;if r6 does not equal zero go back to loop to keep subtracting
-
-	LDR r1, [r0, #0x050]		;load Timer A Value to r1
-	MOV r1, r1, LSR #5
-	;MOV r5, r9					;copy r9 to r8
-	SDIV r2, r1, r10			;divide Timer A Value by 5 to r2
-	MUL r3, r2, r10				;multiply r2 with 5 to r3
-	SUB r9, r1, r3				;subtract Timer A Value with the value of r3 to get the value of Timer A Value mod 5
-	CMP r9, r7					;compare r9 and r8
-	BEQ ADDValue				;branch to delay if r9 and r8 are equal to make sure pattern is randomized and no repeated number
-	;BL DisableRNG
-	POP {r10,r5}
-	POP {lr}
-	BX lr      	; Return
-	;############################################# Timer_Handler_RNG END #############################################
-
-EnableRNG:
-	;Enable Timer
-	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
-	MOVT r0, #0x4003
-	LDR r1, [r0, #0x00C]		;load content of r0 with offset of 0x00C to r1
-	ORR r1, #0x1				;set bit 0 to enable Timer1
-	STR r1, [r0, #0x00C]		;store r1 into r0 to enable Timer1
-	MOV pc, lr
-
-DisableRNG:
-	;Disable Timer
-	MOV r0, #0x1000				;move memory address of Timer1 base address to r0
-	MOVT r0, #0x4003
-	LDR r1, [r0, #0x00C]		;load content of r0 with offset with 0x00C to r1
-	BIC r1, #0x1				;clear bit 0 to disable Timer1
-	STR r1, [r0, #0x00C]		;store r1 into r0 to disable Timer1
-	MOV pc, lr
-
 
 simple_read_character:
 	PUSH {lr}   ; Store register lr on stack
@@ -482,6 +429,7 @@ GotoBeginBlockLoop:
 
 quit:
 	NOP
+	BL DisableT
 	MOV r0, #0
 	LDR r1, SYSCTL
 	STR r0, [r1, #GPIODATA]
