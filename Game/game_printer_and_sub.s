@@ -44,6 +44,7 @@ row16:	.half 0x0010, 0x0110, 0x0210, 0x0310, 0x0410, 0x0510, 0x0610, 0x0710, 0x0
 ballcolor:		.byte 	0x00
 ;ANSI ESC Lookup Table
 disablecur:	.string 27,"[?25l",0x00	;disable cursor
+homecur:	.string 27,"[;H",0x00
 blink:		.string 27,"[5m",0x00	;blink
 NBlink:		.string 27,"[25m",0x00	;stop blink
 red:		.string 27,"[41m",0x00	;red bg
@@ -68,6 +69,7 @@ defaulttx:	.string 27,"[39m",0x00	;default fg
 	.global output_character
 	.global output_string
 	.global clr_page
+	.global home
 	.global new_line
 	.global int2string
 **********************************from exterior file**********************************************
@@ -110,6 +112,7 @@ ptr_to_row15:           .word row15
 ptr_to_row16:           .word row16
 ptr_to_ballcolor:		.word ballcolor
 ptr_to_disablecur:		.word disablecur
+ptr_to_homecur:			.word homecur
 ptr_to_blink:		    .word blink
 ptr_to_NBlink:		    .word NBlink
 ptr_to_red:		        .word red
@@ -147,7 +150,7 @@ gameprinter:
 	STRHEQ r0, [r1]
 
 	PUSH {r6}
-	BL clr_page
+	BL home
 	LDR r0, ptr_to_scorePrompt
 	BL output_string			;print score prompt
 	LDR r0, ptr_to_scorestr
@@ -590,6 +593,16 @@ clr_page:
 
 	POP {pc}
 	;############################################# clr_page END #############################################
+
+home:
+	PUSH {lr}
+
+	LDR R0, ptr_to_homecur
+	BL output_string
+
+	POP {pc}
+	;############################################# clr_page END #############################################
+
 
 ;NEW_LINE SUBROUTINE
 new_line:
