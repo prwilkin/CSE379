@@ -222,9 +222,17 @@ end:
 
 Four_LED_subroutine:
 	PUSH {lr}				;lives stored in r6
-	CMP r6, #0xF				;compare if r6 is 0xF
-	BEQ setlight1				;if r6 is 0xF go to setlight1
-	BNE Threelives				;if not go to Threelives
+	CMP r6, #0xFF
+	BEQ set4lives
+	BNE Threelives
+set4lives:
+	MOV r6, #0xF
+	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
+	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
+	BIC r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
+	ORR r1, r6					;set bit 0-3 to set all the 4 LEDs on the ALICE Board on
+	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set all the 4 LEDS on
+	B end4light					;branch to end4light to end the subroutine
 setlight1:
 	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
 	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
@@ -234,45 +242,46 @@ setlight1:
 	MOV r6, #0x7				;set r6 to 0x7 because next time the player lose a life it will go back here to set 3 LED on
 	B end4light					;branch to end4light to end the subroutine
 Threelives:
-	CMP r6, #0x7				;compare if r6 is 0x7
+	CMP r6, #0xF				;compare if r6 is 0x7
 	BEQ setlight2				;if r6 is 0x7 go to setlight2
 	BNE Twolives				;if not go to Twolives
 setlight2:
+	MOV r6, #0x7
 	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
 	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
 	AND r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
 	ORR r1, r6					;set bit 0-2 to set 3 LEDs on the ALICE Board on
 	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set 3 LEDS on
-	MOV r6, #0x3				;set r6 to 0x3 because next time the player lose a life it will go back here to set 2 LED on
 	B end4light					;branch to end4light to end the subroutine
 Twolives:
-	CMP r6, #0x3				;compare if r6 is 0x3
+	CMP r6, #0x7				;compare if r6 is 0x3
 	BEQ setlight3				;if r6 is 0x7 go to setlight3
 	BNE Onelives				;if not go to Onelives
 setlight3:
+	MOV r6, #0x3
 	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
 	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
 	AND r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
 	ORR r1, r6					;set bit 0-1 to set 2 LEDs on the ALICE Board on
 	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set 2 LEDS on
-	MOV r6, #0x1				;set r6 to 0x1 because next time the player lose a life it will go back here to set 1 LED on
 	B end4light					;branch to end4light to end the subroutine
 Onelives:
-	CMP r6, #0x1				;compare if r6 is 0x1
+	CMP r6, #0x3				;compare if r6 is 0x1
 	BEQ setlight4				;if r6 is 0x7 go to setlight4
 	BNE Zerolives				;if not go to Zerolives
 setlight4:
+	MOV r6, #0x1
 	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
 	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
 	AND r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
 	ORR r1, r6					;set bit 0 to set 1 LEDs on the ALICE Board on
 	STR r1, [r0, #GPIODATA]		;store r1 to r0 to set 1 LEDS on
-	MOV r6, #0x0				;set r6 to 0x1 because next time the player lose a life it will go back here to set 0 LED on
 	B end4light					;branch to end4light to end the subroutine
 Zerolives:
-	CMP r6, #0x0				;compare if r6 is 0x0
+	CMP r6, #0x1				;compare if r6 is 0x0
 	BEQ setlight5				;if r6 is 0x7 go to setlight4
 setlight5:
+	MOV r6, #0x0
 	LDR r0, GPIO_PORT_B			;move memory address of GPIO_PORT_B base address to r0
 	LDR r1, [r0, #GPIODATA]		;load content of r0 with offset with GPIODATA to r1
 	AND r1, #0x00				;clear all bit to clear all the 4 LEDS on the ALICE Board
