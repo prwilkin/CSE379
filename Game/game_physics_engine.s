@@ -22,7 +22,7 @@ angle:				.byte 0x01		;						180=1 60=2 45=1		  | angle = paddle section
 cordinatesNow:		.half 0x0A06
 cordinatesNext: 	.half 0x0A07
 paddleX:			.half 0x0810
-blocklvls:			.byte 0x04
+blocklvls:			.byte 0x01
 **********************************from exterior file**********************************************
 	.global ballcolor	;game_printer_and_sub
 	.global scorestr	;game_printer_and_sub
@@ -295,6 +295,8 @@ checker45Up:
 	CMP r3, #0		;check for left
 	BNE checker45UpRight
 checker45UpLeft:
+	CMP r1, #0x01	;check for row 1
+	BEQ checker45UpLeftWall
 	CMP r1, #0x00	;check if along top
 	BNE checker45UpLeftBlock
 checker45UpLeftTop:
@@ -335,6 +337,11 @@ checker45UpLeftBlock:
 	MOVEQ r3, #2		;set LeftRight to right
 	MOVEQ r4, #0		;set UpDown to down
 	BEQ checker45end		;exit <=
+	CMP r0, #0x00
+	ITT EQ
+	POPEQ {r3, r4}
+	ADDEQ r1, #1
+	BEQ checker45UpLeftWall
 	;else see if blocks is alive
 	PUSH {r0, r1}
 	BL blockCheck45
@@ -361,6 +368,8 @@ checker45UpRight:
 	CMP r3, #2		;check for right
 	BNE checker45Down
 checker45UpRightTop:
+	CMP r1, #0x01	;check for row 1
+	BEQ checker45UpRightWall
 	CMP r1, #0x00
 	BNE checker45UpRightBlock
 	CMP r0, #0x14	;test for edge case of corner
@@ -400,6 +409,11 @@ checker45UpRightBlock:
 	MOVEQ r3, #0		;set LeftRight to left
 	MOVEQ r4, #0		;set UpDown to down
 	BEQ checker45end		;exit <=
+	CMP r0, #0x14
+	ITT EQ
+	POPEQ {r3, r4}
+	ADDEQ r1, #1
+	BEQ checker45UpRightWall
 	;else see if blocks is alive
 	PUSH {r0, r1}
 	BL blockCheck45
@@ -454,7 +468,7 @@ checker45DownLeftBlock:
 	;have to check if in block area
 	ADD r2, r1, #1
 	LDR r5, ptr_to_blocklvls
-	LDR r5, [r5]
+	LDRB r5, [r5]
 	ADD r5, #1
 	CMP r2, r5
 	BGT checker45DownLeftWall	;not in block area
@@ -474,6 +488,11 @@ checker45DownLeftBlock:
 	MOVEQ r3, #2		;set LeftRight to right
 	MOVEQ r4, #2		;set UpDown to up
 	BEQ checker45end		;exit <=
+	CMP r0, #0x00
+	ITT EQ
+	POPEQ {r3, r4}
+	SUBEQ r1, #1
+	BEQ checker45DownLeftWall
 	;else see if blocks is alive
 	PUSH {r0, r1}
 	BL blockCheck45
@@ -521,6 +540,13 @@ checker45DownRightBlock:
 	ADDEQ r0, #1	;move 1 right
 	ADDEQ r1, #1	;move 1 down
 	BEQ checker180end		;exit <=
+	;have to check if in block area
+	ADD r2, r1, #1
+	LDR r5, ptr_to_blocklvls
+	LDRB r5, [r5]
+	ADD r5, #1
+	CMP r2, r5
+	BGT checker45DownRightWall	;not in block area
 	CMP r0, #0x14		;see if block and wall corner
 	ITTTT EQ			;if yes
 	ADDEQ r1, #1		;move 1 down
@@ -537,6 +563,11 @@ checker45DownRightBlock:
 	MOVEQ r3, #0		;set LeftRight to left
 	MOVEQ r4, #2		;set UpDown to up
 	BEQ checker45end		;exit <=
+	CMP r0, #0x14
+	ITT EQ
+	POPEQ {r3, r4}
+	SUBEQ r1, #1
+	BEQ checker45DownRightWall
 	;else see if blocks is alive
 	PUSH {r0, r1}
 	BL blockCheck45
@@ -674,19 +705,16 @@ checker60UpDown:
 	BNE checker60Down
 checker60Up:
 	CMP r1, #0x01	;row 1
-	ITTT EQ
+	ITTTT EQ
 	SUBEQ r1, #1	;move up 1
 	ADDEQ r0, r3		;move x accordingly
+	MOVEQ r4, #-1		;set UpDown down
 	POPEQ {lr}			;lr to game
-	BEQ checker60Flip		;exit <=
+	BEQ checker60end		;exit <=
 	CMP r1, #0x00	;row 0
 	BNE	checker60UpDownBlock
 	ADD r1, #1		;move down 1
 	MOV r4, #-1		;set UpDown down
-	CMP r3, #1
-	ITE EQ			;if LeftRight is right
-	MOVEQ r3, #-1	;then set left
-	MOVNE r3, #1	;else set right
 	POP {pc}			;exit <=
 checker60Down:
 	CMP r1, #0x10	;if bottom row
@@ -782,16 +810,21 @@ checker60UpDown2:
 	BNE checker60Down2
 checker60Up2:
 	CMP r1, #0x01	;row 1
-	ITT EQ
+	ITTT EQ
 	SUBEQ r1, #1	;move up 1
-	POPEQ {pc}			;exit <=
+	MOVEQ r4, #-1		;set UpDown down
+	POPEQ {pc}				;exit <=
+	CMP r1, #0x00	;row 0
+	BNE	checker60UpDownBlock2
+	MOV r4, #-1		;set UpDown down
+	POP {pc}			;exit <=
 checker60Down2:
 	CMP r1, #0x10	;if bottom row
 	ITTTT EQ
 	ADDEQ r3, #1	;reset LeftRight
 	ADDEQ r4, #1	;reset UpDown
 	POPEQ {lr}
-	BEQ lifelost
+	BEQ lifelost		;exit <=
 	CMP r1, #0x0F	;if above paddle
 	BNE checker60UpDownBlock2
 	LDR r5, ptr_to_paddleX
@@ -831,10 +864,10 @@ checker60UpDownEnd2:
 	;############################################# checker60LeftRight END #############################################
 
 checker60Flip:
-	CMP r3, #1
-	ITE EQ			;if LeftRight is right
-	MOVEQ r3, #-1	;then set left
-	MOVNE r3, #1	;else set right
+	CMP r4, #1
+	ITE EQ			;if UpDown is Up
+	MOVEQ r4, #-1	;then set down
+	MOVNE r4, #1	;then set up
 	BEQ checker60end
 
 getBlockLive:

@@ -23,7 +23,7 @@ startrow6:		.string "|switches for block   |",0x00
 startrow7:		.string "|levels. A & D for LR.|",0x00
 startrow8:		.string "|Q to quit when paused|",0x00
 pause:			.string "PAUSE",0x00
-gameOver:		.string "|  Game Over: Press 8 |",0x00
+gameOver:		.string "   Game Over: Press 8",0x00
 row0:	.half 0x0000, 0x0100, 0x0200, 0x0300, 0x0400, 0x0500, 0x0600, 0x0700, 0x0800, 0x0900, 0x0A00, 0x0B00, 0x0C00, 0x0D00, 0x0E00, 0x0F00, 0x1000, 0x1100, 0x1200, 0x1300, 0x1400
 row1:	.half 0x0001, 0x0101, 0x0201, 0x0301, 0x0401, 0x0501, 0x0601, 0x0701, 0x0801, 0x0901, 0x0A01, 0x0B01, 0x0C01, 0x0D01, 0x0E01, 0x0F01, 0x1001, 0x1101, 0x1201, 0x1301, 0x1401
 row2:	.half 0x0002, 0x0102, 0x0202, 0x0302, 0x0402, 0x0502, 0x0602, 0x0702, 0x0802, 0x0902, 0x0A02, 0x0B02, 0x0C02, 0x0D02, 0x0E02, 0x0F02, 0x1002, 0x1102, 0x1202, 0x1302, 0x1402
@@ -90,6 +90,7 @@ ptr_to_startrow6:		.word startrow6
 ptr_to_startrow7:		.word startrow7
 ptr_to_startrow8:		.word startrow8
 ptr_to_pause:			.word pause
+ptr_to_gameOver:		.word gameOver
 ptr_to_row0:			.word row0
 ptr_to_row1:            .word row1
 ptr_to_row2:            .word row2
@@ -135,7 +136,17 @@ ptr_to_blocksrow5:		.word blocksrow5
 
 
 gameprinter:
-	PUSH {lr, r6}
+	PUSH {lr}
+
+	MOV r0, #0xFFFF
+	CMP r6, #0	;if dead ruin ball cordinates game over
+	ITTTT EQ
+	LDREQ r1, ptr_to_cordinatesNow
+	STRHEQ r0, [r1]
+	LDREQ r1, ptr_to_cordinatesNext
+	STRHEQ r0, [r1]
+
+	PUSH {r6}
 	BL clr_page
 	LDR r0, ptr_to_scorePrompt
 	BL output_string			;print score prompt
@@ -185,8 +196,15 @@ gameprinter:
 	BL printer_assist_paddle	;print row 16
 	LDR r0, ptr_to_topNbottom
 	BL output_string			;print bottom wall
+	POP {r6}
+	CMP r6, #0	;if dead print game over
+	IT NE
+	POPNE {pc}
+	BL new_line
+	LDR r0, ptr_to_gameOver
+	BL output_string
 
-	POP {pc, r6}
+	POP {pc}
 	;############################################# printer END #############################################
 
 printer_assist:

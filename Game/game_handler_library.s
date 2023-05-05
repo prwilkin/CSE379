@@ -87,7 +87,7 @@ A:
 	STRH r1, [r0]
 
 key8:
-	CMP r0, #0x72	;if 8 then restart
+	CMP r0, #0x38	;if 8 then restart
 	BNE UART0_Handler_end
 	BL restart_game
 

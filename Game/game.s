@@ -28,7 +28,6 @@ gamelevel:	.byte 0x01
 	.global lifelost
 	.global BlockCreate
 	.global BeginBlockLoop
-	.global game_over
 **********************************from exterior file**********************************************
 	.global uart_init					;game_init_library
 	.global uart_interrupt_init			;game_init_library
@@ -50,7 +49,6 @@ gamelevel:	.byte 0x01
 	.global rgbLED				;game_handler_library
 	.global start_printer	;game_printer_and_sub
 	.global gameprinter		;game_printer_and_sub
-	.global output_string	;game_printer_and_sub
 	.global checkermanager		;game_physics_engine
 	.global encodeBlock			;game_physics_engine
 **************************************************************************************************
@@ -69,7 +67,6 @@ ptr_to_cordinatesNow:	.word cordinatesNow
 ptr_to_cordinatesNext:	.word cordinatesNext
 ptr_to_paddleX:			.word paddleX
 ptr_to_blocklvls:		.word blocklvls
-ptr_to_gameOver:		.word gameOver
 ptr_to_ballcolor:		.word ballcolor
 **************************************************************************************************
 
@@ -127,6 +124,7 @@ newLevel:
 	POP {pc}
 
 restart_game:
+	PUSH {lr}
 	LDR r1, ptr_to_score
 	MOV r0, #0x0000
 	STRH r0, [r1]		;reset score to 0
@@ -163,6 +161,24 @@ restart_game:
 	LDR r1, ptr_to_paddleX
 	MOV r0, #0x0810
 	STRH r0, [r1]		;reset paddleX
+	BL uart_init
+	BL uart_interrupt_init
+	BL gpio_interrupt_init
+	BL Four_LED_init
+	BL Four_BUTTON_init
+	BL RGB_LIGHT_init
+	BL timer_interrupt_init
+	BL DisableT			;pause timer until game actually starts
+	BL timer_interrupt_init_RNG		;disabled by default
+	BL start_printer
+	;BL read_from_push_btns
+	MOV r11, #0		;block counter
+	BL makeBlocks
+	MOV r7, #0		;pause reg 1 is pause 0 is running
+	MOV r6, #0xF	;lives reg also used as direct output for lives
+	BL Four_LED_subroutine
+	BL EnableT		;start game
+	POP {PC}
 
 
 lifelost:
@@ -282,16 +298,16 @@ BlockLoop:
 	POP {r0, pc}
 
 game_over:
+	PUSH {lr}
 	BL DisableT
-	MOV r0, #0xFFFF
 	BL Four_LED_subroutine
-	LDR r0, ptr_to_gameOver
-	BL output_string
+	MOV r0, #0xFFFF
 	LDR r1, ptr_to_cordinatesNow
 	STRH r0, [r1]
 	LDR r1, ptr_to_cordinatesNext
 	STRH r0, [r1]
+	BL DisableT
 	BL gameprinter
-	B wait
+	POP {pc}
 
 .end
