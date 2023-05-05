@@ -222,7 +222,7 @@ end:
 
 Four_LED_subroutine:
 	PUSH {lr}				;lives stored in r6
-	CMP r6, #0xFF
+	CMP r6, #0xFF				;random big value
 	BEQ set4lives
 	BNE Threelives
 set4lives:
