@@ -81,7 +81,7 @@ start:
 	BL DisableT			;pause timer until game actually starts
 	BL timer_interrupt_init_RNG		;disabled by default
 	BL start_printer
-	;BL read_from_push_btns
+	BL read_from_push_btns
 	MOV r11, #0		;block counter
 	BL makeBlocks
 	BL EnableT		;start game
@@ -98,28 +98,12 @@ game:
 	BL checkermanager
 	CMP r11, #0
 	IT EQ
-	BLEQ newLevel
+	BLEQ nextLevel
 	BL gameprinter
 	;move cordinates
 	LDR r1, ptr_to_cordinatesNext
 	LDRH r0, [r1]
 	LDR r1, ptr_to_cordinatesNow
-	STRH r0, [r1]
-	POP {pc}
-
-newLevel:
-	PUSH {lr}
-	LDR r0, ptr_to_gamelevel
-	LDRB r1, [r0]
-	ADD r1, #1		;increase game level by 1
-	STRB r1, [r0]
-	;do timer increase
-	BL makeBlocks
-	MOV r7, #0			;fix pause reg
-	MOV r0, #0x0A06			;reset ball
-	LDR r1, ptr_to_cordinatesNow
-	STRH r0, [r1]
-	LDR r1, ptr_to_cordinatesNext
 	STRH r0, [r1]
 	POP {pc}
 
@@ -171,7 +155,7 @@ restart_game:
 	BL DisableT			;pause timer until game actually starts
 	BL timer_interrupt_init_RNG		;disabled by default
 	BL start_printer
-	;BL read_from_push_btns
+	BL read_from_push_btns
 	MOV r11, #0		;block counter
 	BL makeBlocks
 	MOV r7, #0		;pause reg 1 is pause 0 is running
@@ -198,7 +182,8 @@ lifelost:
 	POP {pc}
 
 nextLevel:
-	BL DisableT			;pause timer
+	PUSH {lr}
+	;BL DisableT			;pause timer
 	MOV r0, #0x0A06
 	LDR r1, ptr_to_cordinatesNow
 	STRH r0, [r1]
@@ -209,17 +194,18 @@ nextLevel:
 	LDRB r0, [r1]
 	ADD r0, #1
 	STRB r0, [r1]
-	CMP r1, #2
+	CMP r0, #2
 	IT EQ
 	BLEQ  Timer_Level_2
-	CMP r1, #3
+	CMP r0, #3
 	IT EQ
 	BLEQ  Timer_Level_3
-	CMP r1, #4
+	CMP r0, #4
 	IT EQ
 	BLEQ  Timer_Level_4
-	BL EnableT		;start game
-	B wait
+	;BL EnableT		;start game
+	MOV r7, #0
+	POP {pc}
 
 makeBlocks:
 	PUSH {lr}
